@@ -10,7 +10,7 @@ const levels = [
   { label: "Strong", color: "var(--positive)" },
 ]
 
-export function passwordScore(password: string): number {
+function passwordScore(password: string): number {
   if (password.length < 8) return 0
   let score = 1
   if (/\p{L}/u.test(password) && /\d/.test(password)) score++
