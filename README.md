@@ -79,6 +79,22 @@ The demo data contains an open **October month split** (30 expenses, a calculati
 **September month split** that is already settled. The seeder only runs with the `demo` profile and does nothing if the
 demo users already exist.
 
+### Start over: wipe and reseed
+
+```bash
+./scripts/reseed-demo.sh              # wipes the database, then starts the backend (demo profile) in the foreground
+./scripts/reseed-demo.sh --seed-only  # wipes and seeds, then stops again (about 7 seconds)
+./scripts/reseed-demo.sh --yes        # skips the confirmation question
+```
+
+**Stop the backend first.** Indexes and the default categories are created when the backend starts, so dropping the
+database under a running backend would leave it without them. The script checks the backend port and refuses to run
+while a backend answers there. It also asks before deleting, and refuses a non-localhost `MONGODB_URI` unless you pass
+`--allow-remote`. It needs `mongosh` and Java 21, and reads `MONGODB_URI` and `PORT` from `.env`.
+
+By hand, the same thing is `mongosh splitmate --eval 'db.dropDatabase()'` (backend stopped) followed by starting the backend
+with the demo profile. On Windows, use that route (or run the script from Git Bash or WSL).
+
 ## Ports and configuration
 
 | What | Default |
@@ -115,6 +131,8 @@ splitmate/
 │   ├── BUILD_LOG.md              what each phase delivered, decisions, results
 │   ├── mongodb-queries.md        mongosh queries for the live demo
 │   └── demo-script.md            a timed 7-minute walkthrough
+├── scripts/
+│   └── reseed-demo.sh            wipe the database and reseed the demo data
 ├── backend/                      Spring Boot 4, Java 21, Maven (use ./mvnw)
 │   └── src/main/java/com/splitmate/
 │       ├── auth/                 register, login, JWT cookie, CSRF, login rate limit

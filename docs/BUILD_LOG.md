@@ -354,3 +354,17 @@ were deferred, so those steps are verification plus finishing what is missing (t
 Final README: what SplitMate is, screenshot filenames to capture (15, in `docs/screenshots/`), prerequisites, run with demo data
 (backend `:8090`, frontend `:5173`), demo accounts, ports and `.env` variables, project structure, tests, documentation links. It is
 extended by later steps (reseed script, Swagger, the prod build) as those features land.
+
+### Wipe and reseed (done)
+
+- `scripts/reseed-demo.sh`: wipes the database and reseeds the demo data. Default: wipe, then run the backend with the demo
+  profile in the foreground (it seeds on startup). `--seed-only`: wipe, seed, stop again (about 7 s, no process left behind).
+  `--yes` skips the confirmation.
+- **The backend must be stopped first.** Indexes and the default categories are created at backend startup, so dropping the database
+  under a running backend would leave it without them. The script refuses while the backend port answers.
+- Safety: asks before deleting (shows the database name), refuses a non-localhost `MONGODB_URI` unless `--allow-remote`,
+  needs `mongosh`.
+- Tested: refuses while a backend runs (and wiped nothing); answering "n" keeps the data; `--seed-only` removed a planted user and a
+  junk collection and produced exactly the pristine counts (61 activity entries, 12 categories, 43 expenses, 2 GridFS files, 4 payments,
+  2 reports, 3 settlements, 2 splits, 4 users) with the indexes recreated; the default mode started the backend and seeded.
+- (My first test run was invalid: a leftover `spring-boot:run` from earlier was still alive, so the script correctly refused.)
