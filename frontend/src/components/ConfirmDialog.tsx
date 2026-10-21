@@ -40,7 +40,7 @@ export function ConfirmDialog({
               size="xl"
               disabled={pending}
               onClick={onConfirm}
-              className={destructive ? "bg-negative text-white hover:bg-negative/85" : undefined}
+              className={destructive ? "bg-negative text-on-negative hover:bg-negative/85" : undefined}
             >
               {confirmLabel}
             </Button>

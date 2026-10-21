@@ -405,3 +405,29 @@ were checked by eye for legibility.
   GET /api/splits (3 demo splits), POST /api/splits (201, created, so the CSRF header was sent). Spec checks: 39 operations, 0 without a
   summary, 0 leaked `userId` params, exactly the 5 public ones marked, error schema registered.
 - 86 backend tests still pass.
+
+### Light theme (done)
+
+The light theme, the toggle (header, account menu, profile page: Midnight / Light / System), system-preference default, persistence
+and the no-flash inline script were built in Phase 1. This step verified them on **every** screen and fixed what failed.
+
+- **Contrast audit:** axe-core's WCAG `color-contrast` rule run in headless Chrome over **27 screens and overlay states**
+  (landing, login, register with errors, join page logged out and in, invalid invite, 404, dashboard, account menu, create-split form
+  and share screen, profile, split expenses, an expanded expense, add-expense with errors, balances, record payment, report tab,
+  activity, members sheet, split menu, confirm dialog, edit split, calculating, results, report, settled split), in **both themes at
+  1440px and 390px**. Final result: **0 violations in all four runs.**
+- Found and fixed along the way:
+  - Destructive confirm button: white text on the light coral was **2.69:1** in dark mode. New `--on-negative` token (near-black on
+    coral in dark, white on crimson in light).
+  - Light theme: error/"owes" red `#e11d48` was **4.49:1 and 4.42:1** on the off-white. Light red is now `#be123c` (about 6:1).
+  - The report heat-map's blue ramp was dark-to-light only (right for the dark surface, backwards in light). It is now theme-aware so
+    "near zero" recedes into the surface in both themes. I computed the contrast of white vs ink text on every ramp step: one step
+    (`#2a78d6`, 4.42 / 4.43) cannot reach 4.5:1 with either, so it is left out; text colour per step is set from the measured values.
+  - A false positive worth knowing about: scanning the "crunching numbers" state late caught results mid fade-in; it is now scanned
+    at 250 ms.
+- Limits of the automation (checked by eye instead): axe cannot judge text over gradients or inside SVG charts. I looked at the light
+  landing, login, dashboard, balances, results overlay and report screens; the settlement graph, balance bars and charts read well.
+- **Behaviour tests (12/12 pass, real browser):** follows the system setting when nothing is stored (dark and light); the toggle flips
+  the theme and the choice survives a reload even against the system setting; the `dark` class is set before `<body>` exists (no flash);
+  choosing "System" in the profile removes the stored choice and the app then follows the OS live when it changes; the account menu
+  offers Midnight / Light / System.

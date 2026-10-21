@@ -17,6 +17,7 @@ import {
 } from "recharts"
 
 import type { CategoryStat, MemberStat, ReportStats } from "@/api/types"
+import { useTheme } from "@/hooks/useTheme"
 import { firstName, formatDay, parseLocalDate } from "@/lib/format"
 import { formatCompact, formatMoney, formatWhole } from "@/lib/money"
 import { cn } from "@/lib/utils"
@@ -363,16 +364,26 @@ export function MemberBars({ members, currency }: { members: MemberStat[]; curre
 
 // ----------------------------------------------------------------------------- member × category heat-map
 
-/** One-hue blue ramp (dark steps 700 to 250). Lightness rises with value, so "more" is always brighter. */
-const RAMP = ["#0d366b", "#104281", "#184f95", "#1c5cab", "#256abf", "#2a78d6", "#3987e5", "#5598e7", "#6da7ec", "#86b6ef"]
+/**
+ * One-hue blue ramp. "Near zero" always recedes toward the surface and "more" is always more prominent:
+ * on the dark surface lightness rises with value (dark to light), on the light surface it falls (light to dark).
+ */
+// #2a78d6 is left out: neither white (4.42) nor ink (4.43) text reaches 4.5:1 on it. Every remaining step does.
+const RAMP_DARK = ["#0d366b", "#104281", "#184f95", "#1c5cab", "#256abf", "#3987e5", "#5598e7", "#6da7ec", "#86b6ef"]
+const RAMP_LIGHT = [...RAMP_DARK].reverse()
 
-function heat(ratio: number): { background: string; color: string } {
+function heat(ratio: number, dark: boolean): { background: string; color: string } {
   if (ratio <= 0) return { background: "transparent", color: "var(--muted-foreground)" }
-  const index = Math.min(RAMP.length - 1, Math.floor(ratio * (RAMP.length - 1) + 0.0001))
-  return { background: RAMP[index], color: index >= 7 ? "#0A0C10" : "#FFFFFF" }
+  const ramp = dark ? RAMP_DARK : RAMP_LIGHT
+  const index = Math.min(ramp.length - 1, Math.floor(ratio * (ramp.length - 1) + 0.0001))
+  // white text on the dark steps (5.4:1 or more), ink on the light ones (5.4:1 or more)
+  const lightCell = dark ? index >= 5 : index <= 3
+  return { background: ramp[index], color: lightCell ? "#0A0C10" : "#FFFFFF" }
 }
 
 export function MemberCategoryHeatmap({ stats, currency }: { stats: ReportStats; currency: string }) {
+  const dark = useTheme().resolved === "dark"
+  const ramp = dark ? RAMP_DARK : RAMP_LIGHT
   const categories = stats.byCategory
   const cells = new Map(stats.memberCategoryMatrix.map((c) => [`${c.userId}|${c.categoryKey}`, c.shareMinor]))
   const max = stats.memberCategoryMatrix.reduce((m, c) => Math.max(m, c.shareMinor), 0)
@@ -386,7 +397,7 @@ export function MemberCategoryHeatmap({ stats, currency }: { stats: ReportStats;
         <div className="flex items-center gap-2 text-xs text-muted-foreground" aria-hidden>
           less
           <span className="flex overflow-hidden rounded-md">
-            {RAMP.filter((_, i) => i % 2 === 0).map((c) => (
+            {ramp.filter((_, i) => i % 2 === 0).map((c) => (
               <span key={c} className="h-3 w-4" style={{ backgroundColor: c }} />
             ))}
           </span>
@@ -416,7 +427,7 @@ export function MemberCategoryHeatmap({ stats, currency }: { stats: ReportStats;
                 </th>
                 {categories.map((c) => {
                   const value = cells.get(`${m.userId}|${c.key}`) ?? 0
-                  const style = heat(max === 0 ? 0 : value / max)
+                  const style = heat(max === 0 ? 0 : value / max, dark)
                   return (
                     <td key={c.categoryId} className="rounded-md px-1 py-2 text-center font-money text-xs" style={style} title={`${m.name} · ${c.name}: ${formatMoney(value, currency)}`}>
                       {value === 0 ? "–" : formatWhole(value, currency)}

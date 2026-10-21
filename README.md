@@ -9,7 +9,8 @@ fewest payments that settle everyone, then generate a **spending report** (in th
 
 - **Java 21 + Spring Boot 4** backend with a layered design (controller, service, repository) and a framework-free
   calculation engine. **MongoDB** stores everything (aggregation pipelines for the analysis, GridFS for the PDFs).
-- **React + TypeScript + Vite + Tailwind** frontend with a midnight dark theme.
+- **React + TypeScript + Vite + Tailwind** frontend with a midnight dark theme and a light theme (it follows your system
+  setting by default; the toggle in the header, the account menu and the profile page overrides it and is remembered).
 - Money is **never** a floating point number: every amount is an integer count of cents.
 
 ## Screenshots
