@@ -8,6 +8,7 @@ import { LandingPage } from "@/features/landing/LandingPage"
 import { ProfilePage } from "@/features/profile/ProfilePage"
 import { AppShell } from "@/features/shell/AppShell"
 import { NotFoundPage } from "@/features/shell/NotFoundPage"
+import { ReportPage } from "@/features/reports/ReportPage"
 import { RouteError } from "@/features/shell/RouteError"
 import { JoinPage } from "@/features/splits/JoinPage"
 import { SplitPage } from "@/features/splits/SplitPage"
@@ -34,6 +35,7 @@ export const router = createBrowserRouter([
             children: [
               { index: true, element: <DashboardPage /> },
               { path: "splits/:splitId", element: <SplitPage /> },
+              { path: "splits/:splitId/reports/:reportId", element: <ReportPage /> },
               { path: "profile", element: <ProfilePage /> },
               { path: "*", element: <NotFoundPage /> },
             ],

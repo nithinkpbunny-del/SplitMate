@@ -206,3 +206,65 @@ export type Payment = {
   createdAt: string
   warning: string | null
 }
+
+export type CategoryStat = {
+  categoryId: string
+  key: string
+  name: string
+  color: string
+  totalMinor: number
+  count: number
+  percent: number
+}
+
+export type MemberStat = {
+  userId: string
+  name: string
+  avatarColor: string
+  paidMinor: number
+  shareMinor: number
+  netMinor: number
+  percentOfPaid: number
+}
+
+export type ReportStats = {
+  totalSpendMinor: number
+  expenseCount: number
+  avgPerExpenseMinor: number
+  avgPerDayMinor: number
+  avgPerPersonMinor: number
+  days: number
+  byCategory: CategoryStat[]
+  byMember: MemberStat[]
+  dailyTrend: { date: string; totalMinor: number }[]
+  weekdayPattern: { weekday: string; totalMinor: number }[]
+  topExpenses: { expenseId: string; description: string; amountMinor: number; paidByName: string | null; date: string; categoryName: string | null }[]
+  memberCategoryMatrix: { userId: string; categoryKey: string; shareMinor: number }[]
+}
+
+export type Report = {
+  id: string
+  splitId: string
+  settlementId: string | null
+  generatedBy: string
+  generatedByName: string
+  generatedAt: string
+  periodStart: string
+  periodEnd: string
+  currency: string
+  stats: ReportStats
+  insights: string[]
+  pdfFileId: string | null
+  pdfFileName: string | null
+}
+
+export type ReportSummary = {
+  id: string
+  generatedAt: string
+  generatedByName: string
+  periodStart: string
+  periodEnd: string
+  totalSpendMinor: number
+  expenseCount: number
+  topInsight: string | null
+}

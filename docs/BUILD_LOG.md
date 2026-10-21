@@ -271,3 +271,24 @@ frontend `cd frontend && npm install && npm run dev`.
 - Tests: `ReportFlowIntegrationTest` (409s, stats, GridFS file linked to the report, PDF text checked with PDFBox including
   the worked-example numbers, permissions, CSV quoting and formula safety). Suite: 86 tests, 0 failures.
 - Verified by eye: rendered the October PDF with PyMuPDF (3 pages); figures match the app.
+
+### Step 4: Report UI (done)
+
+- Split page has a **Report** tab (list of generated reports with period, total, top insight; "Generate report";
+  prompts to calculate first when there is no calculation). The calculation results screen has **Generate spending
+  report**, which creates the report and opens it.
+- Report view at `/app/splits/:splitId/reports/:reportId`: hero total, KPI cards (expenses, average per day, per person,
+  biggest expense), insights as callout cards, category donut + legend table, paid vs their share grouped columns,
+  daily trend area chart (peak labelled), weekday columns, top 5 expenses, member × category heat-map, and
+  **Download PDF** / **Export CSV** buttons (real file downloads with the server's file names).
+- Charts follow the dataviz skill. I ran its validator: the app's own category colours **fail** for a donut (rose vs orange,
+  normal-vision ΔE 12.5 < 15), so the report charts use the skill's validated palette (`--viz-1..5`, dark and light steps in
+  `index.css`): single-series charts use slot 1, the donut uses slots 1-5 by rank and folds the rest into a neutral
+  "Other", the two-series chart uses slots 1 and 2 with a legend. Bars are ≤ 24px with a 4px rounded data end, lines 2px,
+  area fill 10%, hairline grid, a 2px surface gap between donut slices, direct label on the peak/maximum only, hover tooltips,
+  text in text tokens (never the series colour), an `aria-label` description per chart, and a **Table** toggle on each chart.
+  The heat-map uses a one-hue blue ramp whose lightness rises with value.
+- Checked in the browser: tab, generate, PDF and CSV downloads, and the calculation-results shortcut, no console errors.
+  (A full-page screenshot caught the line chart mid-animation once; an element screenshot shows it correctly.)
+- Note: my testing added extra reports and a recalculation to the demo database; reset it with `db.dropDatabase()` and a
+  backend restart to get the pristine seeded state.

@@ -78,6 +78,11 @@ export function formatMoney(minor: number, currency = "EUR"): string {
   return formatter(currency).format(minorToMajor(minor))
 }
 
+/** €86 (no decimals), for dense tables such as the heat-map. */
+export function formatWhole(minor: number, currency = "EUR"): string {
+  return new Intl.NumberFormat("en-IE", { style: "currency", currency, maximumFractionDigits: 0 }).format(Math.round(minor / 100))
+}
+
 /** +€12.00 / −€12.00 (real minus sign). */
 export function formatSigned(minor: number, currency = "EUR"): string {
   if (minor === 0) return formatMoney(0, currency)

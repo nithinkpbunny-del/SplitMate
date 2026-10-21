@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 import { motion } from "framer-motion"
-import { AlertTriangle, Archive, Calculator, CircleCheckBig, History, Receipt, Scale } from "lucide-react"
+import { AlertTriangle, Archive, Calculator, CircleCheckBig, FileBarChart2, History, Receipt, Scale } from "lucide-react"
 import { useRef, useState } from "react"
 import { useParams, useSearchParams } from "react-router"
 
@@ -19,6 +19,8 @@ import { BalancesTab } from "@/features/settlement/BalancesTab"
 import { CalculationReveal } from "@/features/settlement/CalculationReveal"
 import { RecordPaymentDialog, type PaymentPreset } from "@/features/settlement/RecordPaymentDialog"
 import { useCalculate } from "@/features/settlement/useSettlement"
+import { ReportsTab } from "@/features/reports/ReportsTab"
+import { useGenerateReport } from "@/features/reports/useGenerateReport"
 import { NotFoundPage } from "@/features/shell/NotFoundPage"
 import { useHotkeys } from "@/hooks/useHotkeys"
 
@@ -27,11 +29,12 @@ import { SplitHeader } from "./SplitHeader"
 import { SplitTabs, type TabDef } from "./SplitTabs"
 import { useSplit } from "./useSplit"
 
-type TabId = "expenses" | "balances" | "activity"
+type TabId = "expenses" | "balances" | "reports" | "activity"
 
 const baseTabs: TabDef<TabId>[] = [
   { id: "expenses", label: "Expenses", icon: Receipt },
   { id: "balances", label: "Balances", icon: Scale },
+  { id: "reports", label: "Report", icon: FileBarChart2 },
   { id: "activity", label: "Activity", icon: History },
 ]
 
@@ -69,6 +72,7 @@ function SplitView({ split, me }: { split: Split; me: string }) {
   const searchRef = useRef<HTMLInputElement>(null)
   const isOpen = split.status === "OPEN"
   const calculate = useCalculate(split.id)
+  const generateReport = useGenerateReport(split.id)
   const [revealOpen, setRevealOpen] = useState(false)
   const [payment, setPayment] = useState<{ open: boolean; preset: PaymentPreset | null }>({ open: false, preset: null })
 
@@ -124,6 +128,7 @@ function SplitView({ split, me }: { split: Split; me: string }) {
           />
         )}
         {tab === "balances" && <BalancesTab split={split} me={me} onCalculate={runCalculation} onRecordPayment={recordPayment} />}
+        {tab === "reports" && <ReportsTab split={split} onCalculate={runCalculation} />}
         {tab === "activity" && <ActivityTab splitId={split.id} />}
       </motion.section>
 
@@ -141,6 +146,7 @@ function SplitView({ split, me }: { split: Split; me: string }) {
           setRevealOpen(false)
           setTab("balances")
         }}
+        onGenerateReport={() => generateReport.mutate(undefined, { onSuccess: () => setRevealOpen(false) })}
       />
       <RecordPaymentDialog
         splitId={split.id}
