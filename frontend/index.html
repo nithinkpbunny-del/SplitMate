@@ -3,8 +3,22 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0A0C10" />
+    <meta name="description" content="SplitMate: split rent, groceries and everything in between with your flatmates. No awkward maths." />
+    <title>SplitMate · Split it fairly</title>
+    <script>
+      // Apply the saved or system theme before first paint to avoid a flash.
+      (function () {
+        try {
+          var saved = localStorage.getItem("sm.theme")
+          var dark = saved ? saved === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches
+          if (dark) document.documentElement.classList.add("dark")
+        } catch (e) {
+          document.documentElement.classList.add("dark")
+        }
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

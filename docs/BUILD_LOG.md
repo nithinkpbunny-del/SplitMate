@@ -26,3 +26,38 @@ development machine, so `docker-compose.yml` is provided but was not started, an
 - `demo` is a Spring profile *group* that also activates `dev`.
 - Actuator's base path is `/api`, so health is `/api/health` and goes through the same dev proxy.
 - Integration tests that need a real MongoDB are tagged `mongo-integration` and run with `./mvnw -Pintegration test`.
+
+## Phase 1: Auth
+
+**Delivered**
+- `users` collection (unique lowercase email, BCrypt hash, avatar colour from a fixed palette, audited
+  `createdAt`/`updatedAt`, `lastLoginAt`).
+- `POST /api/auth/register|login|logout`, `GET /api/auth/me`, `GET /api/auth/csrf`, `PATCH /api/users/me`,
+  `PUT /api/users/me/password`, `GET /api/users/avatar-colors`.
+- JWT (HS256) with Spring Security's built-in `NimbusJwtEncoder`/`NimbusJwtDecoder`, carried in an httpOnly
+  `SM_TOKEN` cookie (SameSite=Lax, Secure in prod, 7 days). `CookieBearerTokenResolver` also accepts
+  `Authorization: Bearer` for curl/Postman. The cookie is ignored on public endpoints and cleared on a 401,
+  so a stale cookie never breaks login.
+- CSRF on, cookie-to-header (`csrf.spa()` in Spring Security 7). Requests authenticated by an explicit
+  Authorization header skip CSRF (a browser cannot forge that header).
+- `JWT_SECRET` must be >= 32 bytes; startup fails without it unless the dev/demo profile is active (then a
+  random secret is generated with a loud warning).
+- Global `@RestControllerAdvice` + JSON security handlers: every error has
+  `{timestamp, status, error, message, path, fieldErrors}`.
+- Login rate limit: 10 failed attempts per (IP, email) in a sliding 5-minute window → 429 with Retry-After.
+  Unknown emails take the same BCrypt time as known ones.
+- Frontend: theme system (midnight/light/system, stored, no flash on load), typed API client with CSRF and
+  401 handling, landing page, split-screen login/register with animated brand panel and password strength
+  meter, `next=` return-path support, route guards, app shell, profile page, 404 and error boundary.
+
+**Tests:** `MoneyTest` (28 cases incl. European formats), `LoginRateLimiterTest`, `AuthServiceTest` (Mockito),
+`AuthFlowIntegrationTest` (MockMvc against local MongoDB, tagged `mongo-integration`).
+
+**Decisions**
+- Port 8080 is taken by Jenkins on the development machine, so the local `.env` sets `PORT=8090` and
+  `BACKEND_URL=http://localhost:8090` (Vite reads the root `.env`). Defaults stay at 8080 as specified.
+- `_class` type hints are switched off in the Mongo converter (no polymorphic documents) to keep the demo
+  data clean.
+- `LocalDate` is stored with the driver's UTC codec so date aggregations land on the right day.
+- `Money.parse` treats a lone separator followed by exactly three digits as thousands grouping
+  (`1.234` = 1234, as written in Germany); the same rule is mirrored in `frontend/src/lib/money.ts`.
