@@ -473,3 +473,55 @@ All three existed from earlier phases (built before they were deferred); this st
 - Found while testing: running `-Pprod` (which runs `npm ci`) while `npm run dev` is up leaves the Vite dev server with a stale dependency cache
   (`504 Outdated Optimize Dep`, blank pages). Restarting the dev server fixes it; worth remembering when switching between the two.
 - Suite: 90 backend tests pass; frontend build and lint clean.
+
+---
+
+## §14 acceptance pass (done: every item passes)
+
+Run against a **fresh `git clone`** of the committed repo (258 tracked files, no `.env`, no `node_modules`), following the README. The end-to-end
+checks are one script (`acceptance.mjs`, Playwright driving real Chrome) with **three simultaneous browser sessions** (Priya, Dev, Sam), an
+outsider (Zed) and an anonymous session; it also recomputes every balance **independently in exact integer arithmetic** and compares.
+First run: 47/48 (the one failure was my test's selector: `header` matched the app's top bar, not the split header; verified by hand that
+the page and the API both show 3 members). After fixing the selector, a full re-run from scratch: **48/48**.
+
+| # | §14 item | Result | Evidence |
+|---|---|---|---|
+| 1 | Fresh clone + prerequisites + README steps run with no manual code edits | PASS | `git clone` (no `.env`, no `node_modules`); `./scripts/reseed-demo.sh --seed-only --yes`; `./mvnw spring-boot:run -Dspring-boot.run.profiles=demo` (profiles demo + dev, port 8090); `npm install` (exit 0); `npm run dev` (5173, proxy to 8090). `git status` in the clone afterwards: 0 changes. |
+| 2 | Register, logout, login; wrong password friendly; rate limit triggers | PASS (6/6) | landing → Get started → register lands on `/app`; logout → `/login`, `/app` redirects to login; wrong password: "Incorrect email or password"; 11th failed login: "Too many login attempts. Try again in 5 minutes." |
+| 3 | Create "October month split" → invite link shown, copy works | PASS (2/2) | link `…/join/<12 chars>`; Copy puts exactly that link on the clipboard and shows "Copied". |
+| 4 | Link logged out in another browser → preview → register → back on join → joined | PASS (5/5) | second browser context: preview "Priya invited you to…", "Create an account to join", register, **returns to `/join/<code>` automatically**, one click joins; a third user registers first then opens the link and joins; owner sees "3 members". |
+| 5 | Non-member on the split URL or API gets 404 | PASS (4/4) | outsider: UI shows "Split not found" (no split data); API `GET /splits/{id}` 404, and 404 on `/expenses`, `/settlements/latest`, `/activity`; no login: 401. |
+| 6 | 10+ expenses, different payers and participant subsets | PASS (3/3) | **12 expenses** added through the drawer by 3 different people (some "everyone", some pairs, one "only me", one where the payer is not a participant, European amounts like `900,00`, `9,90`, and a €31.00 that splits 3 ways with a leftover cent); shares sum to the amount to the cent on all 12. |
+| 7 | Calculate: Paid / Their share / Net correct, spot-check by hand, Σ net = 0, transfers ≤ n−1 | PASS (6/6) | all 3 members' Paid, Share and Net equal the independent computation; Σ net = 0; 2 transfers ≤ n−1 = 2 and they settle every balance; snapshot v1 stored. **Hand check below.** |
+| 8 | Edit an expense → stale banner → recalculate → new snapshot | PASS (5/5) | Coffee 9,90 → 12,00: banner appears, recalculating stores v2 (history `2,1`), total +€2.10 (123040 → 123250), banner gone. |
+| 9 | Record payment → balances right after recalculation | PASS (6/6) | Dev→Priya €292.08 (prefilled with the amount owed); marks stale; after recalculating Dev's net went −292.08 → 0, Priya's dropped by exactly 292.08, Σ net still 0, `paymentsSentMinor` shows it. |
+| 10 | Report: charts + insights render; PDF downloads, opens and looks professional | PASS (6/6) | 4 chart containers, 6 insights, hero total €1,232.50; the browser downloaded `SplitMate-October-month-split-2026-10.pdf` (valid `%PDF-`, 3 pages, rendered and inspected: branded cover, KPIs, tables, page numbers); CSV has header + 12 rows. |
+| 11 | Every action visible in MongoDB | PASS (5/5) | for this run: users 4, splits 1, expenses 12, categories 12, settlements 3, payments 1, reports 1, `fs.files` 1 + `fs.chunks` 1, activity_logs 21 covering SPLIT_CREATED, MEMBER_JOINED, EXPENSE_ADDED, EXPENSE_UPDATED, SPLIT_CALCULATED, PAYMENT_RECORDED, REPORT_GENERATED; passwords are `$2a$` BCrypt hashes. |
+| 12 | All `docs/mongodb-queries.md` queries run on the demo data | PASS | all 23 blocks executed on the freshly reseeded database: 0 failures. |
+| 13 | `./mvnw test` green; `npm run build` and `npm run lint` clean | PASS | `./mvnw test`: 59 tests; `./mvnw -Pintegration test`: **90 tests**, 0 failures; `npm run build` and `npm run lint`: 0 warnings, 0 errors. |
+| 14 | UI checked at 360, 768, 1440; dark and light | PASS | axe-core contrast audit over **27 screens/overlays at 360, 390, 768 and 1440px in both themes (8 runs): 0 violations**; horizontal overflow measured on every page at 360, 768 and 1440 (and 390 earlier): 0px; screens inspected by eye at 360/390, 768 and 1440. |
+| 15 | Prod single-jar build serves the full app | PASS | `./mvnw -Pprod clean package` rebuilt on the final code; the jar served `/`, `/login`, `/app/splits/abc`, `/join/...` (200 index.html), `/api/health` 200, `/swagger-ui.html` and `/api/docs` 404, the prod profile active by default, login worked, and the seeded PDF downloaded. |
+
+### Hand spot-check of one member's net balance (Dev Patel, calculation v1, before the Coffee edit)
+
+Expenses (amount, payer, who shares): Rent 900 (Priya, all 3); Groceries 60 (Dev, all); Internet 30 (Sam, all); Dinner 45 (Priya, Priya+Dev);
+Taxi 12 (Dev, Dev+Sam); Cinema 27 (Sam, Priya+Sam); Coffee 9.90 (Priya, all); Pizza 31 (Dev, all); Petrol 50 (Sam, Sam only); Gift 40 (Priya, Dev+Sam);
+Snacks 7.50 (Dev, Priya+Dev); Cleaning 18 (Sam, all). Total 1,230.40.
+
+- **Dev paid** = Groceries 60.00 + Taxi 12.00 + Pizza 31.00 + Snacks 7.50 = **110.50**
+- **Dev's share** = Rent 300.00 + Groceries 20.00 + Internet 10.00 + Dinner 22.50 + Taxi 6.00 + Cinema 0 + Coffee 3.30 + **Pizza 10.33** + Petrol 0
+  + Gift 20.00 + Snacks 3.75 + Cleaning 6.00 = **401.88**
+  (Pizza: 3100 cents / 3 = 1033 remainder 1; the extra cent goes to the first participant by id, Priya, so Dev pays 10.33.)
+- **Dev's net** = 110.50 − 401.88 = **−291.38**, so Dev owes €291.38.
+
+The app's results screen showed Dev: Paid €110.50, Their share €401.88, Net −€291.38, the API snapshot said `netMinor: -29138`, and the independent
+code gave the same. Cross-check of the whole group: Priya +605.51, Dev −291.38, Sam −314.13, which sums to 0; the transfers were Sam→Priya 314.13 and
+Dev→Priya 291.38.
+
+### Found and fixed during the acceptance pass
+
+- **PDF ambiguity:** the "Per person" Net column (paid − share) showed Dev still owing after Dev's recorded payment, while "Who pays whom" no longer
+  listed Dev. A footnote explained it, but two tables that seem to disagree are a trap. Added a **Balance now** column (from the latest calculation,
+  which includes payments) and extended the PDF test to check for it.
+- My acceptance script had a selector bug (above) and, on review before the first run, two things that could have hidden failures (a `|| true` on a
+  check and some leftover no-op lines); both were removed before running.
