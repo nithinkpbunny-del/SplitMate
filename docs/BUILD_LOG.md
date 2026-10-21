@@ -160,3 +160,44 @@ C paid 0 / share 50.00 / net −50.00; transfers C→A €50.00, B→A €10.00.
 - The balance chart follows the dataviz guidance: bars ≤ 24px with a rounded data end and a square
   baseline, neutral zero line, value labels in text colours with +/− (never colour alone), hover tooltip,
   and the member cards act as the table view.
+
+## Phase 5: Reports (IN PROGRESS, stopped here)
+
+Phases 0–4 are complete, verified and committed. Phase 5 was interrupted part-way. This commit holds the
+backend pieces written so far. They compile and the 68 existing tests still pass, but **nothing is wired up
+yet, so there is no report endpoint, PDF or UI.**
+
+**Done (in `backend/src/main/java/com/splitmate/report/`)**
+- `Report` document (`reports` collection, index `{splitId, generatedAt:-1}`), `ReportStats`, `ReportRepository`,
+  and the request/response/summary DTOs.
+- `ReportAggregations`: one `$facet` pipeline over the split's expenses via `MongoTemplate` that produces totals,
+  by-category (`$group` + `$lookup` + `$unwind`), daily trend (`$dateToString`), weekday pattern (`$dayOfWeek`),
+  top 5 (`$sort` + `$limit` + `$lookup`), paid and share per member (`$unwind` + `$group`) and the
+  member × category matrix. Averages use integer half-up division (`divideRounded`), no doubles near money.
+  **Not yet run against MongoDB**, so the pipeline may need fixes on first execution.
+- `InsightGenerator`: rule-based insights (top category share, highest-spend day, biggest expense, paid most vs
+  consumed most, average per person per day, weekend vs weekday, change vs previous split). Not yet unit tested.
+
+**Still to do for Phase 5**
+1. `ReportService` + `ReportController`: `POST /api/splits/{id}/reports`, `GET /api/splits/{id}/reports`,
+   `GET /api/reports/{id}`, `GET /api/reports/{id}/pdf`, `GET /api/splits/{id}/export.csv`. Resolve the period
+   (request → split period → first/last expense date), find a previous split with the same members for the
+   comparison insight, require a calculation first, log `REPORT_GENERATED`, delete reports on `SplitDeletedEvent`.
+2. PDF: Thymeleaf `templates/report.html` → OpenHTMLtoPDF (A4, page numbers in the footer), JFreeChart PNGs for
+   the category donut and daily trend, stored in GridFS with `{reportId, splitId}` metadata, streamed back with
+   `Content-Disposition: attachment; filename="SplitMate-<split>-<yyyy-MM>.pdf"`. Fonts are not bundled; a
+   download of Inter and JetBrains Mono into the scratchpad was started but not used.
+3. Tests: aggregation integration test against the worked example, `InsightGenerator` unit tests, PDF smoke test.
+4. Frontend: Report tab, "Generate report" on the calculation results, report view (KPI cards, category donut,
+   daily area chart, weekday bars, paid-vs-share grouped bars, member × category heat-map, top expenses,
+   insight cards, Download PDF and Export CSV buttons).
+
+**Then:** Phase 6 (UI polish), Phase 7 (demo seeder, docs, single-jar `-Pprod` build) and Phase 8 (acceptance
+checklist), as specified in SPEC.md §12.
+
+**Environment notes for whoever resumes**
+- Port 8080 is used by Jenkins on this machine. The local, uncommitted `.env` sets `PORT=8090` and
+  `BACKEND_URL=http://localhost:8090`.
+- `~/.npm` has root-owned cache files. Use `npm_config_cache=<some dir>` for `npx`/`npm install` or run
+  `sudo chown -R 501:20 ~/.npm`.
+- Run `./mvnw -Pintegration test` for the full suite (needs local MongoDB; uses the `splitmate_test` database).
