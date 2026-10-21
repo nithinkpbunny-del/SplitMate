@@ -109,3 +109,42 @@ export type Activity = {
   metadata: Record<string, unknown>
   createdAt: string
 }
+
+export type Category = {
+  id: string
+  key: string
+  name: string
+  icon: string
+  color: string
+  splitId: string | null
+  isDefault: boolean
+  sortOrder: number
+}
+
+export type Expense = {
+  id: string
+  splitId: string
+  description: string
+  amountMinor: number
+  currency: string
+  categoryId: string
+  paidBy: string
+  splitType: "EQUAL"
+  participants: string[]
+  shares: { userId: string; amountMinor: number }[]
+  date: string
+  notes: string | null
+  createdBy: string
+  canEdit: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export type ExpensePage = {
+  items: Expense[]
+  page: number
+  size: number
+  totalItems: number
+  totalPages: number
+  totalAmountMinor: number
+}

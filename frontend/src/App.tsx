@@ -40,7 +40,7 @@ function ThemedToaster() {
     <Toaster
       theme={resolved}
       position="bottom-center"
-      offset={88}
+      offset={104}
       mobileOffset={88}
       toastOptions={{
         classNames: {

@@ -93,3 +93,34 @@ development machine, so `docker-compose.yml` is provided but was not started, an
   `SPLIT_ARCHIVED`, `SPLIT_REOPENED`, `INVITE_ENABLED`, `INVITE_DISABLED`, `PAYMENT_DELETED`.
 - Joining is only possible while a split is OPEN; existing members can always "join" again (no-op).
 - On mobile every dialog is a bottom sheet (vaul); on desktop a centred dialog or right drawer.
+
+## Phase 3: Categories and expenses
+
+**Delivered**
+- `categories`: 12 defaults (Rent, Groceries, Utilities, Dining Out, Transport, Household, Entertainment,
+  Travel, Shopping, Health, Subscriptions, Other) seeded idempotently at startup by key; unique index on
+  `{splitId, key}`. `GET /api/categories?splitId=`.
+- `expenses` with indexes `{splitId, date:-1}`, `{splitId, deleted}`, `{splitId, paidBy}`.
+- `GET/POST /api/splits/{id}/expenses`, `GET/PUT/DELETE /api/splits/{id}/expenses/{expenseId}`.
+  Filters: category, paidBy, participant, from, to, q (case-insensitive, regex-escaped), sort, page/size; the
+  response carries the total amount of everything matching the filters (aggregation).
+- Shares are computed on the server by the pure `EqualSplit` engine class (remainder cents to the first
+  participants by id; sum asserted) and stored on the expense.
+- Validation: amount via `Money.parse` (> 0, <= 2 decimals, <= €100k), description 1–80, payer and every
+  participant must be active members, date at most one day in the future, split must be OPEN.
+- Permissions: creator, payer or split owner can edit/delete. Delete is soft (`deleted: true`).
+- Each change sets `lastExpenseChangeAt` and logs EXPENSE_ADDED/UPDATED/DELETED with the amount.
+- Frontend: Expenses tab (search with `/`, payer/member/sort filters, category chips, totals for the filter,
+  receipt-style list grouped by day with day totals, rows that expand in place to show who shares it),
+  add/edit drawer (right drawer on desktop, bottom sheet on mobile) with a large amount field that accepts
+  "86,40" and "86.40", category grid, date, payer picker, split-with toggles plus "Everyone" / "Only me + …",
+  and a live per-person preview computed exactly like the server. Optimistic add/delete with rollback.
+  `N` opens the drawer, `Enter` saves. Floating action bar (desktop) / "+" button (mobile).
+
+**Tests:** `ExpenseFlowIntegrationTest` (exact stored shares, payer outside participants, permission rules,
+soft delete, filters, the spec's worked example as live balances, closed split rejects writes).
+
+**Decisions**
+- "Today" for the future-date rule is evaluated in Europe/Berlin, where the target users live.
+- Text search uses an escaped case-insensitive regex instead of a `$text` index so partial words match
+  ("groc" finds "Groceries").

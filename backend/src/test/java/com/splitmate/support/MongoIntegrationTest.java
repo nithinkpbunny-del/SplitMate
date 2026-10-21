@@ -22,8 +22,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
 /**
- * Base class for end-to-end tests against a real local MongoDB (database {@code splitmate_test}, dropped
- * before each test). Docker is not assumed, so these run with {@code ./mvnw -Pintegration test}.
+ * Base class for end-to-end tests against a real local MongoDB (database {@code splitmate_test}, emptied
+ * before each test, except the seeded categories). Docker is not assumed, so these run with {@code ./mvnw -Pintegration test}.
  */
 @Tag("mongo-integration")
 @SpringBootTest(properties = {
@@ -42,7 +42,8 @@ public abstract class MongoIntegrationTest {
 	@BeforeEach
 	void cleanDatabase() {
 		for (String collection : mongo.getCollectionNames()) {
-			if (!collection.startsWith("system.")) {
+			// categories are reference data seeded once at startup
+			if (!collection.startsWith("system.") && !collection.equals("categories")) {
 				mongo.getCollection(collection).deleteMany(new org.bson.Document());
 			}
 		}

@@ -48,7 +48,7 @@ export function ResponsiveSheet({
   if (desktop === "drawer") {
     return (
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="right" className={cn("w-full gap-0 border-hairline sm:max-w-[480px]", className)}>
+        <SheetContent side="right" className={cn("w-full gap-0 border-hairline data-[side=right]:w-full data-[side=right]:sm:max-w-[480px]", className)}>
           <SheetHeader className={cn("px-6 pt-6", hideHeader && "sr-only")}>
             <SheetTitle className="font-heading text-2xl font-bold">{title}</SheetTitle>
             {description && <SheetDescription>{description}</SheetDescription>}
