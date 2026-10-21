@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { ArrowRight, Eye, EyeOff, Loader2 } from "lucide-react"
 import { useState } from "react"
-import { useForm } from "react-hook-form"
+import { useForm, useWatch } from "react-hook-form"
 import { Link, useNavigate, useSearchParams } from "react-router"
 import { toast } from "sonner"
 import { z } from "zod"
@@ -43,7 +43,7 @@ export function RegisterPage() {
 
   const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: { name: "", email: "", password: "" } })
   const { errors } = form.formState
-  const password = form.watch("password")
+  const password = useWatch({ control: form.control, name: "password" })
 
   const register = useMutation({
     mutationFn: authApi.register,

@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { motion } from "framer-motion"
 import { Check, Loader2, Monitor, Moon, Sun } from "lucide-react"
-import { useForm } from "react-hook-form"
+import { useForm, useWatch } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
 
@@ -148,6 +148,7 @@ function PasswordCard() {
     defaultValues: { currentPassword: "", newPassword: "" },
   })
   const { errors } = form.formState
+  const newPassword = useWatch({ control: form.control, name: "newPassword" })
   const change = useMutation({
     mutationFn: usersApi.changePassword,
     meta: { silent: true },
@@ -186,7 +187,7 @@ function PasswordCard() {
             {...form.register("newPassword")}
           />
           <div className="pt-1">
-            <PasswordStrength password={form.watch("newPassword")} />
+            <PasswordStrength password={newPassword} />
           </div>
         </FormField>
         <Button type="submit" size="xl" disabled={change.isPending}>
