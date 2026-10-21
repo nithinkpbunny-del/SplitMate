@@ -378,3 +378,14 @@ disabling or regenerating does), the calculate flow (sequence diagram with the b
 version counter and stale detection) and, as a bonus, the report flow. A table of design decisions follows.
 **Every diagram was parsed and rendered with the real Mermaid library (v11) in headless Chrome: 5 of 5 valid**, and the two big ones
 were checked by eye for legibility.
+
+### docs/api.md (done)
+
+- All **40** endpoints (39 API endpoints + the Actuator health check): conventions (auth cookie or Bearer, CSRF, ids, money in cents,
+  dates, the 404-for-non-members rule), the error shape and status codes, a curl quick start, then each endpoint with who may call it,
+  rules from the code, a request and a response.
+- **The examples are real.** They were produced by a script that drove a freshly seeded backend through realistic flows (register,
+  create split, invite and join, expenses with filters, calculate, payments including the over-payment warning, settle, reports, PDF and
+  CSV headers, activity, leave/remove, delete vs archive, and the 400/401/403/404/409/429 errors) and recorded the actual responses;
+  lists are cut to two items. A cross-check of every `@…Mapping` in the controllers against the doc found **0 missing and 0 extra**.
+- No tokens or passwords other than the public demo ones appear in the doc (the `SM_TOKEN` value is redacted).

@@ -129,6 +129,7 @@ splitmate/
 ├── .env.example                  every setting, documented
 ├── docs/
 │   ├── BUILD_LOG.md              what each phase delivered, decisions, results
+│   ├── api.md                    every endpoint with request and response examples
 │   ├── architecture.md           Mermaid diagrams: system, collections, invite flow, calculate flow
 │   ├── mongodb-queries.md        mongosh queries for the live demo
 │   └── demo-script.md            a timed 7-minute walkthrough
@@ -174,4 +175,4 @@ The frontend checks are `npm run build` (type-checks and builds) and `npm run li
 - [docs/architecture.md](docs/architecture.md): Mermaid diagrams of the system, the collections, the invite flow and the calculate flow
 - [docs/demo-script.md](docs/demo-script.md): a timed walkthrough for a live demo
 - [docs/BUILD_LOG.md](docs/BUILD_LOG.md): what was built, decisions made and verification results
-- API reference: `docs/api.md` (added in this build, see the build log)
+- [docs/api.md](docs/api.md): every endpoint with a request and a real response example
