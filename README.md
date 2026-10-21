@@ -119,6 +119,18 @@ Without `JWT_SECRET` the dev and demo profiles generate a random signing secret 
 which logs everybody out whenever the backend restarts. Set `JWT_SECRET` in `.env` to keep logins across restarts.
 On Windows PowerShell, set a variable for one run with `$env:PORT = "8090"` before the command.
 
+## API documentation (Swagger UI)
+
+With the `dev` or `demo` profile the backend serves interactive API docs:
+
+- **http://localhost:8090/swagger-ui.html**: browse and try every endpoint
+- http://localhost:8090/api/docs: the OpenAPI 3.1 JSON
+
+To call protected endpoints from Swagger UI: run **GET /api/auth/csrf** once, then **POST /api/auth/login** with a demo account
+(`{"email": "aarav@demo.com", "password": "Demo@1234"}`). The login cookie is stored by your browser and Swagger UI adds the CSRF
+header to writes automatically, so everything else works. In the `prod` profile Swagger is switched off and these URLs answer 404.
+The written reference with real response examples is in [docs/api.md](docs/api.md).
+
 ## Project structure
 
 ```

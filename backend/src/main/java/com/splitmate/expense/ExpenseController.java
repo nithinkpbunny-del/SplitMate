@@ -5,6 +5,10 @@ import java.time.LocalDate;
 import jakarta.validation.Valid;
 import org.bson.types.ObjectId;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.splitmate.common.security.CurrentUserId;
 
 import org.springframework.format.annotation.DateTimeFormat;
@@ -20,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "Expenses", description = "Expenses with server-side shares, filters and soft delete")
 @RestController
 @RequestMapping("/api/splits/{splitId}/expenses")
 public class ExpenseController {
@@ -30,6 +35,7 @@ public class ExpenseController {
 		this.service = service;
 	}
 
+	@Operation(summary = "List expenses with filters, sorting and paging")
 	@GetMapping
 	public ExpensePage list(@PathVariable String splitId, @CurrentUserId ObjectId userId,
 			@RequestParam(required = false) String category, @RequestParam(required = false) String paidBy,
@@ -41,24 +47,29 @@ public class ExpenseController {
 		return service.list(splitId, userId, new ExpenseFilter(category, paidBy, participant, from, to, q, sort, page, size));
 	}
 
+	@Operation(summary = "One expense")
 	@GetMapping("/{expenseId}")
 	public ExpenseResponse get(@PathVariable String splitId, @PathVariable String expenseId,
 			@CurrentUserId ObjectId userId) {
 		return service.get(splitId, expenseId, userId);
 	}
 
+	@Operation(summary = "Add an expense (shares are computed on the server)")
+	@ApiResponse(responseCode = "201", description = "Created")
 	@PostMapping
 	public ResponseEntity<ExpenseResponse> create(@PathVariable String splitId, @Valid @RequestBody ExpenseRequest request,
 			@CurrentUserId ObjectId userId) {
 		return ResponseEntity.status(HttpStatus.CREATED).body(service.create(splitId, userId, request));
 	}
 
+	@Operation(summary = "Replace an expense (creator, payer or owner)")
 	@PutMapping("/{expenseId}")
 	public ExpenseResponse update(@PathVariable String splitId, @PathVariable String expenseId,
 			@Valid @RequestBody ExpenseRequest request, @CurrentUserId ObjectId userId) {
 		return service.update(splitId, expenseId, userId, request);
 	}
 
+	@Operation(summary = "Soft-delete an expense (creator, payer or owner)")
 	@DeleteMapping("/{expenseId}")
 	public ResponseEntity<Void> delete(@PathVariable String splitId, @PathVariable String expenseId,
 			@CurrentUserId ObjectId userId) {

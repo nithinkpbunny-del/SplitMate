@@ -389,3 +389,19 @@ were checked by eye for legibility.
   CSV headers, activity, leave/remove, delete vs archive, and the 400/401/403/404/409/429 errors) and recorded the actual responses;
   lists are cut to two items. A cross-check of every `@…Mapping` in the controllers against the doc found **0 missing and 0 extra**.
 - No tokens or passwords other than the public demo ones appear in the doc (the `SM_TOKEN` value is redacted).
+
+### Swagger / OpenAPI (done)
+
+- springdoc-openapi 3.1.1 (the Boot 4 line) was already in the pom and config; it served a bare spec. Made it usable:
+  title/version/description (including the cookie + CSRF "try it out" steps and the conventions), bearer scheme, a tag with a
+  description per controller, a one-line `@Operation` summary on **all 39 operations**, the five public endpoints marked as needing
+  no auth (empty `@SecurityRequirements`; note that `@Operation(security = {})` does *not* do this), `201`/`204` instead of a blanket
+  `200`, the shared `ErrorResponse` schema on 400/401/403/404, and the internal `@CurrentUserId` argument hidden (it had leaked into
+  every operation as a `userId` query parameter).
+- Swagger UI lives at `/swagger-ui.html` (spec at `/api/docs`), enabled by `springdoc.*` in `application-dev.yml`, which the `demo`
+  profile includes. `springdoc.swagger-ui.csrf.enabled` makes Swagger UI send the `X-XSRF-TOKEN` header on writes. `OpenApiConfig` is
+  `@ConditionalOnProperty(springdoc.api-docs.enabled)`, so with `prod` none of it is created. (Verified off in the prod-jar step.)
+- **Tested in a real browser:** Swagger UI's Try it out: GET /api/auth/csrf, POST /api/auth/login (demo account), GET /api/auth/me,
+  GET /api/splits (3 demo splits), POST /api/splits (201, created, so the CSRF header was sent). Spec checks: 39 operations, 0 without a
+  summary, 0 leaked `userId` params, exactly the 5 public ones marked, error schema registered.
+- 86 backend tests still pass.

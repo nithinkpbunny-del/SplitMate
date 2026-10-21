@@ -4,6 +4,9 @@ import java.util.List;
 
 import org.bson.types.ObjectId;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.splitmate.common.security.CurrentUserId;
 import com.splitmate.split.Split;
 import com.splitmate.split.SplitAccess;
@@ -13,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "Categories", description = "Default and per-split expense categories")
 @RestController
 @RequestMapping("/api/categories")
 public class CategoryController {
@@ -27,6 +31,7 @@ public class CategoryController {
 	}
 
 	/** Default categories, plus the split's own when {@code splitId} is given (members only). */
+	@Operation(summary = "Default categories, plus the split's own when splitId is given")
 	@GetMapping
 	public List<CategoryResponse> list(@RequestParam(required = false) String splitId, @CurrentUserId ObjectId userId) {
 		ObjectId id = null;

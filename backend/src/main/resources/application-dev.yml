@@ -10,6 +10,12 @@ springdoc:
   swagger-ui:
     enabled: true
     path: /swagger-ui.html
+    # send the XSRF-TOKEN cookie back as X-XSRF-TOKEN so "Try it out" works for POST/PUT/PATCH/DELETE
+    csrf:
+      enabled: true
+    persist-authorization: true
+    operations-sorter: alpha
+    tags-sorter: alpha
 
 logging:
   level:
