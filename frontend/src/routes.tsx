@@ -9,6 +9,8 @@ import { ProfilePage } from "@/features/profile/ProfilePage"
 import { AppShell } from "@/features/shell/AppShell"
 import { NotFoundPage } from "@/features/shell/NotFoundPage"
 import { RouteError } from "@/features/shell/RouteError"
+import { JoinPage } from "@/features/splits/JoinPage"
+import { SplitPage } from "@/features/splits/SplitPage"
 
 export const router = createBrowserRouter([
   {
@@ -22,6 +24,7 @@ export const router = createBrowserRouter([
           { path: "/register", element: <RegisterPage /> },
         ],
       },
+      { path: "/join/:code", element: <JoinPage /> },
       {
         path: "/app",
         element: <RequireAuth />,
@@ -30,6 +33,7 @@ export const router = createBrowserRouter([
             element: <AppShell />,
             children: [
               { index: true, element: <DashboardPage /> },
+              { path: "splits/:splitId", element: <SplitPage /> },
               { path: "profile", element: <ProfilePage /> },
               { path: "*", element: <NotFoundPage /> },
             ],

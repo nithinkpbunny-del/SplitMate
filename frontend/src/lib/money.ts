@@ -116,3 +116,11 @@ export function currencySymbol(currency = "EUR"): string {
       .find((p) => p.type === "currency")?.value ?? currency
   )
 }
+
+/** "You get back" / "You owe" / "All square" next to a balance. */
+export function balanceWords(minor: number, subject: "you" | string = "you"): string {
+  const you = subject === "you"
+  if (minor > 0) return you ? "you get back" : `${subject} gets back`
+  if (minor < 0) return you ? "you owe" : `${subject} owes`
+  return you ? "you're all square" : `${subject} is all square`
+}

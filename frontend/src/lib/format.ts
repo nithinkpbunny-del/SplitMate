@@ -68,7 +68,7 @@ export function timeAgo(iso: string): string {
 export function initials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean)
   if (parts.length === 0) return "?"
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
+  if (parts.length === 1) return parts[0][0].toUpperCase()
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
 }
 
@@ -78,4 +78,12 @@ export function firstName(name: string): string {
 
 export function plural(count: number, singular: string, pluralForm = singular + "s"): string {
   return `${count} ${count === 1 ? singular : pluralForm}`
+}
+
+/** First and last day of the month `offset` months from now. */
+export function monthPeriod(offset = 0): { start: string; end: string } {
+  const now = new Date()
+  const first = new Date(now.getFullYear(), now.getMonth() + offset, 1)
+  const last = new Date(first.getFullYear(), first.getMonth() + 1, 0)
+  return { start: toIsoDate(first), end: toIsoDate(last) }
 }

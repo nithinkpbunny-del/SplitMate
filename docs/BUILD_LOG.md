@@ -61,3 +61,35 @@ development machine, so `docker-compose.yml` is provided but was not started, an
 - `LocalDate` is stored with the driver's UTC codec so date aggregations land on the right day.
 - `Money.parse` treats a lone separator followed by exactly three digits as thousands grouping
   (`1.234` = 1234, as written in Germany); the same rule is mirrored in `frontend/src/lib/money.ts`.
+
+## Phase 2: Splits and invites
+
+**Delivered**
+- `splits` collection with embedded `members` (name/email/colour copied in, `active` flag kept for people who
+  leave, because old expenses still point at them). Indexes: `inviteCode` unique, `members.userId`, `ownerId`.
+- Endpoints: `GET/POST /api/splits`, `GET/PATCH/DELETE /api/splits/{id}`,
+  `DELETE /api/splits/{id}/members/{userId}`, `POST /api/splits/{id}/invite/regenerate`,
+  `PATCH /api/splits/{id}/invite`, public `GET /api/invites/{code}`, `POST /api/invites/{code}/join`,
+  `GET /api/splits/{id}/activity`, `GET /api/activity` (dashboard feed).
+- Invite codes: 12 chars base62 from `SecureRandom`; collisions retried against the unique index.
+- Join is atomic and idempotent: `$push` guarded by `members.userId: {$ne: me}`; a former member is
+  reactivated with a positional `members.$` update. No transactions needed.
+- Non-members get 404 for any split URL or id (including malformed ids); owner-only actions are 403.
+- Removing/leaving is blocked (409 with a clear reason) while the person is on a live expense or has a
+  non-zero balance. The owner cannot leave (archive instead).
+- DELETE removes an empty split (and, through `SplitDeletedEvent`, its activity/expenses/payments); a split
+  with expenses is archived instead.
+- Profile changes propagate into every split with a filtered positional update (`members.$[m]`).
+- Dashboard figures (total spend, my net) come from `$facet`/`$group` aggregations (`BalanceQueries`).
+- `settlementVersion` on the split is incremented with `findAndModify` + `$inc` (used by Phase 4).
+- Frontend: dashboard (greeting, owed/owe summary strip, split cards with avatar stack, balance chip and
+  stale dot, "New split" card, recent activity), create-split dialog with emoji/month/currency pickers and a
+  share screen (copy with checkmark, Web Share, WhatsApp, QR), public join page with return-path login,
+  split page header with owner menu (edit, new link, link on/off, archive/reopen, delete), members sheet with
+  remove/leave, activity tab.
+
+**Decisions**
+- Extra activity types beyond the spec's list, so every action is visible in the timeline: `SPLIT_UPDATED`,
+  `SPLIT_ARCHIVED`, `SPLIT_REOPENED`, `INVITE_ENABLED`, `INVITE_DISABLED`, `PAYMENT_DELETED`.
+- Joining is only possible while a split is OPEN; existing members can always "join" again (no-op).
+- On mobile every dialog is a bottom sheet (vaul); on desktop a centred dialog or right drawer.
