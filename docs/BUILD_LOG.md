@@ -339,3 +339,18 @@ data at 1440px and on a phone, with screenshots. Light theme was not touched.
 All six steps requested are done and committed. Tests: 86 backend tests (`./mvnw -Pintegration test`) pass; the frontend builds and
 lints clean. Still not done (deliberately deferred): light-theme polish, the prod single-jar build, Swagger, `docs/architecture.md`,
 `docs/api.md`, the final README, the full §14 acceptance pass and all of §13.
+
+---
+
+# Final round (remaining work from SPEC.md and this log)
+
+Order requested: README, wipe/reseed, architecture, API docs, Swagger, light theme, prod single-jar, the skipped spec items,
+the §14 acceptance pass, a final run. §13 stays out of scope. Blockers are recorded where they happen and listed at the end.
+Note: login rate limiting, the QR code, the light theme and the `N`/`C`/`/` shortcuts were built in earlier phases, before they
+were deferred, so those steps are verification plus finishing what is missing (the `?` help).
+
+### README (done)
+
+Final README: what SplitMate is, screenshot filenames to capture (15, in `docs/screenshots/`), prerequisites, run with demo data
+(backend `:8090`, frontend `:5173`), demo accounts, ports and `.env` variables, project structure, tests, documentation links. It is
+extended by later steps (reseed script, Swagger, the prod build) as those features land.

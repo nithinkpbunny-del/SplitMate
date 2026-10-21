@@ -1,18 +1,51 @@
 # SplitMate
 
-Split rent, groceries and everything in between. No awkward maths.
+**Split rent, groceries and everything in between. No awkward maths.**
 
-SplitMate is a web app for flatmates to track shared expenses, split them fairly and see who owes whom.
-Java 21 + Spring Boot 4 backend, React + TypeScript frontend, MongoDB database. Money is always stored as
-integer cents.
+SplitMate is a web app for friends who live together (for example, a flat share abroad) to track shared expenses,
+split them fairly and see exactly who owes whom. Create a **split** for the month, send an **invite link**, add
+expenses and choose who shares each one, press **Calculate** to see each person's Paid / Their share / Net and the
+fewest payments that settle everyone, then generate a **spending report** (in the app and as a PDF).
 
-> Work in progress. `docs/BUILD_LOG.md` records what is built and what is still to do.
+- **Java 21 + Spring Boot 4** backend with a layered design (controller, service, repository) and a framework-free
+  calculation engine. **MongoDB** stores everything (aggregation pipelines for the analysis, GridFS for the PDFs).
+- **React + TypeScript + Vite + Tailwind** frontend with a midnight dark theme.
+- Money is **never** a floating point number: every amount is an integer count of cents.
+
+## Screenshots
+
+Capture these (browser at about 1440px wide, dark theme unless noted) and save them in `docs/screenshots/`:
+
+| File | What to show |
+|---|---|
+| `01-landing.png` | Landing page with the animated settlement graph |
+| `02-register.png` | Register page with the password strength meter |
+| `03-dashboard.png` | Dashboard as Aarav: summary strip, split cards, recent activity |
+| `04-create-split-share.png` | The share screen after creating a split: invite link, Copy, WhatsApp, QR code |
+| `05-join-invite.png` | The public invite page (logged out, in a private window) |
+| `06-expenses.png` | Split page, Expenses tab (receipt-style list grouped by day) |
+| `07-add-expense.png` | Add expense drawer with the live per-person share preview |
+| `08-calculating.png` | The "crunching numbers" moment right after pressing Calculate |
+| `09-results.png` | Calculation results: total, Paid / Their share / Net, settlement graph, transfers |
+| `10-balances.png` | Balances tab: diverging balance bars, per-person cards, payments |
+| `11-report.png` | Report page: KPIs, insights, donut, charts, heat-map |
+| `12-report-pdf.png` | The first page of the downloaded PDF |
+| `13-mobile-split.png` | Split page at phone width (about 390px) |
+| `14-light-theme.png` | Any screen in the light theme |
+| `15-mongodb.png` | MongoDB Compass or `mongosh` showing the data (for example `splits` or `fs.files`) |
 
 ## Prerequisites
 
-- Java 21, Node 20+ and npm
-- MongoDB reachable at `mongodb://localhost:27017` (a local install, or `docker compose up -d` which also
-  starts mongo-express on http://localhost:8081, login `admin` / `splitmate`)
+- **Java 21** (`java -version`)
+- **Node.js 20 or newer** and npm (`node -v`)
+- **MongoDB** reachable at `mongodb://localhost:27017`. Any of these works:
+  - a local install (for example `brew install mongodb-community` on macOS),
+  - Docker: `docker compose up -d` starts MongoDB and, as a browser viewer, mongo-express on http://localhost:8081
+    (login `admin` / `splitmate`), both bound to localhost only,
+  - MongoDB Atlas: set `MONGODB_URI` (see below).
+- Optional: `mongosh` (to run the queries in `docs/mongodb-queries.md`).
+
+No other installation is needed: the Maven Wrapper (`./mvnw`) downloads Maven itself.
 
 ## Run it with the demo data
 
@@ -29,30 +62,96 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5173 and log in with **aarav@demo.com** / **Demo@1234**. The other demo accounts are
-`isha@demo.com`, `rohan@demo.com` and `sneha@demo.com`, all with the same password.
+Open **http://localhost:5173**.
 
-The demo seeder only runs with the `demo` profile and does nothing if the demo users already exist. To start
-over: `mongosh splitmate --eval 'db.dropDatabase()'`, then restart the backend.
+### Demo accounts
+
+All accounts use the password **`Demo@1234`**.
+
+| Account | Notes |
+|---|---|
+| `aarav@demo.com` | Owner of both demo splits. Start here. |
+| `isha@demo.com` | Member |
+| `rohan@demo.com` | Member |
+| `sneha@demo.com` | Member |
+
+The demo data contains an open **October month split** (30 expenses, a calculation, a payment and a report) and a
+**September month split** that is already settled. The seeder only runs with the `demo` profile and does nothing if the
+demo users already exist.
 
 ## Ports and configuration
 
 | What | Default |
 |---|---|
-| Backend (Spring Boot) | `8090` (`PORT`; 8080 is commonly taken, for example by Jenkins) |
+| Backend (Spring Boot) | `8090` (`PORT`; 8080 is often taken, for example by Jenkins) |
 | Frontend (Vite dev server) | `5173`, proxies `/api` to `BACKEND_URL` (default `http://localhost:8090`) |
 | MongoDB | `mongodb://localhost:27017/splitmate` (`MONGODB_URI`) |
 
-Everything is optional for local development. To override, copy `.env.example` to `.env` in the repository
-root; both the backend and the Vite proxy read it. If you change `PORT`, change `BACKEND_URL` to match.
+Everything is optional for local development. To override, copy `.env.example` to `.env` in the repository root; both
+the backend and the Vite proxy read it. If you change `PORT`, change `BACKEND_URL` to match.
 
-Without `JWT_SECRET` the dev and demo profiles generate a random signing secret on every start (with a
-warning), which logs everybody out when the backend restarts. Set `JWT_SECRET` in `.env` to keep logins.
+| Variable | Purpose |
+|---|---|
+| `MONGODB_URI` | MongoDB connection string (local, Docker or Atlas `mongodb+srv://...`) |
+| `JWT_SECRET` | Signing secret for login tokens, at least 32 bytes (`openssl rand -base64 48`) |
+| `APP_BASE_URL` | Public URL of the frontend, used to build invite links (`/join/{code}`) |
+| `COOKIE_SECURE` | Mark the login cookie `Secure` (HTTPS only) |
+| `PORT`, `BACKEND_URL` | Backend port, and where the Vite proxy sends `/api` |
+| `CORS_ALLOWED_ORIGINS` | Extra origins allowed to call the API (not needed in the normal setups) |
+
+Without `JWT_SECRET` the dev and demo profiles generate a random signing secret on every start (with a loud warning),
+which logs everybody out whenever the backend restarts. Set `JWT_SECRET` in `.env` to keep logins across restarts.
+On Windows PowerShell, set a variable for one run with `$env:PORT = "8090"` before the command.
+
+## Project structure
+
+```
+splitmate/
+├── README.md
+├── SPEC.md                       the original build specification
+├── docker-compose.yml            optional MongoDB + mongo-express (localhost only)
+├── .env.example                  every setting, documented
+├── docs/
+│   ├── BUILD_LOG.md              what each phase delivered, decisions, results
+│   ├── mongodb-queries.md        mongosh queries for the live demo
+│   └── demo-script.md            a timed 7-minute walkthrough
+├── backend/                      Spring Boot 4, Java 21, Maven (use ./mvnw)
+│   └── src/main/java/com/splitmate/
+│       ├── auth/                 register, login, JWT cookie, CSRF, login rate limit
+│       ├── user/                 profile, password change
+│       ├── split/                splits, embedded members, invite links, join/leave
+│       ├── expense/              expenses, server-side shares, filters, soft delete
+│       ├── category/             default categories (seeded)
+│       ├── settlement/           the calculation engine (pure Java) and snapshots
+│       ├── payment/              "I paid you back" records
+│       ├── report/               aggregation pipelines, insights, PDF, GridFS, CSV
+│       ├── activity/             the per-split timeline
+│       ├── seed/                 the demo data seeder (profile demo only)
+│       ├── config/               security, CORS, MongoDB, web configuration
+│       └── common/               Money, errors, id helpers, security helpers
+└── frontend/                     React + TypeScript + Vite + Tailwind
+    └── src/
+        ├── api/                  typed client and one module per resource
+        ├── components/           shared components (MoneyText, SettlementGraph, ...)
+        ├── features/             auth, dashboard, splits, expenses, settlement, reports, ...
+        ├── hooks/, lib/          theme, hotkeys, money and date helpers
+        └── index.css             design tokens (dark and light)
+```
 
 ## Tests
 
 ```bash
 cd backend
-./mvnw test                  # unit tests (engine, money, auth)
-./mvnw -Pintegration test    # also the end-to-end tests against local MongoDB (database splitmate_test)
+./mvnw test                  # unit tests: calculation engine, money parsing, auth, insights
+./mvnw -Pintegration test    # everything, including end-to-end tests against a local MongoDB
 ```
+
+The integration tests use a separate database (`splitmate_test`) and need MongoDB running; Docker is not required.
+The frontend checks are `npm run build` (type-checks and builds) and `npm run lint`, run in `frontend/`.
+
+## Documentation
+
+- [docs/mongodb-queries.md](docs/mongodb-queries.md): queries to show that every action is stored in MongoDB
+- [docs/demo-script.md](docs/demo-script.md): a timed walkthrough for a live demo
+- [docs/BUILD_LOG.md](docs/BUILD_LOG.md): what was built, decisions made and verification results
+- API reference: `docs/api.md` (added in this build, see the build log)
