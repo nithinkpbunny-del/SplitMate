@@ -247,3 +247,27 @@ frontend `cd frontend && npm install && npm run dev`.
   no weekend in the period, same person paid and consumed most, up/down/same vs the previous split, no previous
   split), the 4 to 7 insight cap and that the text really comes from the data.
 - A test of my own had wrong arithmetic (305,706 / 31 = 9,861.48, not 9,862); the code was right.
+
+### Step 3: Report endpoints, PDF and CSV (done)
+
+- Endpoints: `POST /api/splits/{id}/reports` (optional `{periodStart, periodEnd}`), `GET /api/splits/{id}/reports`,
+  `GET /api/reports/{id}`, `GET /api/reports/{id}/pdf`, `GET /api/splits/{id}/export.csv`.
+- Rules: needs a calculation (409 otherwise) and at least one expense in the period (409). The period defaults to the
+  split's period, else the first and last expense date; start must not be after end, at most one year. Non-members get 404
+  on everything (including a report id and the PDF).
+- "Compared with last month" insight: the newest earlier split of the caller with exactly the same active members whose
+  period ended before this one started (October finds September: spending up 35%).
+- PDF: Thymeleaf template `templates/report.html` rendered with OpenHTMLtoPDF, A4, page numbers in the footer, tables and
+  KPIs only (no charts yet): cover header, KPI row, spending by category with bars, per-person Paid / Their share / Net,
+  who pays whom (from the latest calculation, with a note when it is stale), top 5 expenses, insights, full ledger. Stored in
+  GridFS (`fs.files` / `fs.chunks`, metadata `{reportId, splitId}`) and streamed back with
+  `Content-Disposition: attachment; filename="SplitMate-October-month-split-2026-10.pdf"`. If rendering fails the
+  report document is removed again, so a report never exists without its PDF.
+- Built-in PDF fonts only, so text is reduced to what they can draw: emoji are dropped, the typographic minus becomes a
+  hyphen, the euro sign works. (A bundled TTF for nicer typography was started but the download stalled; not needed.)
+- CSV: UTF-8 with BOM for Excel, RFC 4180 quoting, cells starting with `= + - @` get a leading apostrophe so a
+  spreadsheet cannot run them as formulas.
+- The demo seeder now also generates both reports (`DemoReports` → `ReportService`).
+- Tests: `ReportFlowIntegrationTest` (409s, stats, GridFS file linked to the report, PDF text checked with PDFBox including
+  the worked-example numbers, permissions, CSV quoting and formula safety). Suite: 86 tests, 0 failures.
+- Verified by eye: rendered the October PDF with PyMuPDF (3 pages); figures match the app.

@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8"/>
+<title th:text="${title}">SplitMate report</title>
+<style>
+  @page {
+    size: A4;
+    margin: 16mm 14mm 20mm 14mm;
+    @bottom-left { content: "SplitMate  -  spending report"; font-size: 8pt; color: #8A93A3; font-family: sans-serif; }
+    @bottom-right { content: "Page " counter(page) " of " counter(pages); font-size: 8pt; color: #8A93A3; font-family: sans-serif; }
+  }
+  body { font-family: sans-serif; font-size: 9.5pt; color: #11141A; line-height: 1.35; }
+  h2 { font-size: 13pt; margin: 20pt 0 7pt 0; color: #0A0C10; }
+  p { margin: 0 0 4pt 0; }
+  .cover { background-color: #0A0C10; color: #ECEEF2; padding: 18pt 20pt 16pt 20pt; }
+  .brand { font-size: 9pt; letter-spacing: 2pt; color: #D4FF3F; margin: 0 0 10pt 0; }
+  .cover h1 { font-size: 24pt; margin: 0 0 4pt 0; color: #FFFFFF; }
+  .cover .meta { color: #A8B0BF; font-size: 10pt; margin: 0 0 2pt 0; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 8pt; color: #5B6271; border-bottom: 1pt solid #11141A; padding: 4pt 5pt; }
+  td { padding: 5pt 5pt; border-bottom: 0.5pt solid #D9DCE3; vertical-align: top; }
+  .r { text-align: right; }
+  .muted { color: #5B6271; }
+  .pos { color: #047857; font-weight: bold; }
+  .neg { color: #BE123C; font-weight: bold; }
+  .kpis td { border: none; padding: 0 4pt 0 0; width: 25%; }
+  .kpi { background-color: #F2F2EC; padding: 9pt 10pt; }
+  .kpi .v { font-size: 15pt; font-weight: bold; margin: 2pt 0 0 0; }
+  .kpi .l { font-size: 8pt; color: #5B6271; margin: 0; }
+  .bar { background-color: #ECECE6; height: 7pt; }
+  .fill { height: 7pt; }
+  .dot { display: inline-block; width: 7pt; height: 7pt; margin-right: 4pt; }
+  .insight { border-left: 3pt solid #A3C800; background-color: #F7F9EA; padding: 6pt 9pt; margin: 0 0 5pt 0; }
+  .ledger td, .ledger th { font-size: 8.5pt; }
+  .ledger td { padding-top: 3.5pt; padding-bottom: 3.5pt; }
+  .ledger tr { page-break-inside: avoid; }
+  .total td { border-top: 1pt solid #11141A; border-bottom: none; font-weight: bold; }
+  .note { font-size: 8pt; color: #5B6271; margin-top: 4pt; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <p class="brand">SPLITMATE  ·  SPENDING REPORT</p>
+  <h1 th:text="${splitName}">October month split</h1>
+  <p class="meta" th:text="${periodLabel}">1 October 2026 - 31 October 2026</p>
+  <p class="meta" th:text="${membersLine}">Aarav, Isha, Rohan, Sneha</p>
+  <p class="meta" th:text="${generatedLine}">Generated 21 October 2026</p>
+</div>
+
+<h2>At a glance</h2>
+<table class="kpis">
+  <tr>
+    <td th:each="k : ${kpis}">
+      <div class="kpi"><p class="l" th:text="${k.label}">Total spend</p><p class="v" th:text="${k.value}">EUR 0.00</p></div>
+    </td>
+  </tr>
+</table>
+
+<h2>Where the money went</h2>
+<table>
+  <thead><tr><th>Category</th><th class="r">Expenses</th><th class="r">Total</th><th style="width:30%">Share</th><th class="r">%</th></tr></thead>
+  <tbody>
+    <tr th:each="c : ${categories}">
+      <td><span class="dot" th:style="'background-color:' + ${c.color}"></span><span th:text="${c.name}">Rent</span></td>
+      <td class="r" th:text="${c.count}">1</td>
+      <td class="r" th:text="${c.total}">EUR 0.00</td>
+      <td><div class="bar"><div class="fill" th:style="'width:' + ${c.barWidth} + ';background-color:' + ${c.color}"></div></div></td>
+      <td class="r" th:text="${c.percentLabel}">0%</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>Per person</h2>
+<table>
+  <thead><tr><th>Person</th><th class="r">Paid</th><th class="r">Their share</th><th class="r">Net</th></tr></thead>
+  <tbody>
+    <tr th:each="m : ${members}">
+      <td th:text="${m.name}">Aarav</td>
+      <td class="r" th:text="${m.paid}">0</td>
+      <td class="r" th:text="${m.share}">0</td>
+      <td class="r" th:classappend="${m.net.startsWith('-')} ? 'neg' : (${m.net.startsWith('+')} ? 'pos' : 'muted')" th:text="${m.net}">0</td>
+    </tr>
+  </tbody>
+</table>
+<p class="note">Paid is what the person put out. Their share is what they used. Net = paid - share, before any payments between members.</p>
+
+<h2>Who pays whom</h2>
+<table th:if="${!transfers.isEmpty()}">
+  <thead><tr><th>Transfer</th><th class="r">Amount</th></tr></thead>
+  <tbody>
+    <tr th:each="t : ${transfers}"><td th:text="${t.text}">A pays B</td><td class="r" th:text="${t.amount}">0</td></tr>
+  </tbody>
+</table>
+<p th:if="${transfers.isEmpty()}">Everyone is square. Nobody owes anybody.</p>
+<p class="note" th:text="${settlementNote}">From calculation v1</p>
+
+<h2>Biggest expenses</h2>
+<table>
+  <thead><tr><th>#</th><th>Expense</th><th>Paid by</th><th>Date</th><th class="r">Amount</th></tr></thead>
+  <tbody>
+    <tr th:each="e : ${top}">
+      <td th:text="${e.rank}">1</td><td th:text="${e.description}">Rent</td><td th:text="${e.paidBy}">Aarav</td>
+      <td th:text="${e.date}">1 Oct</td><td class="r" th:text="${e.amount}">0</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>Insights</h2>
+<div class="insight" th:each="i : ${insights}"><span th:text="${i}">Rent made up 58% of all spending.</span></div>
+
+<h2 style="page-break-before: always;">All expenses</h2>
+<table class="ledger">
+  <thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Paid by</th><th>Shared by</th><th class="r">Amount</th></tr></thead>
+  <tbody>
+    <tr th:each="l : ${ledger}">
+      <td th:text="${l.date}">1 Oct</td><td th:text="${l.description}">Rent</td><td th:text="${l.category}">Rent</td>
+      <td th:text="${l.paidBy}">Aarav</td><td th:text="${l.sharedBy}">All 4</td><td class="r" th:text="${l.amount}">0</td>
+    </tr>
+    <tr class="total"><td colspan="5" th:text="${ledgerTotalLabel}">Total</td><td class="r" th:text="${ledgerTotal}">0</td></tr>
+  </tbody>
+</table>
+
+</body>
+</html>
