@@ -309,3 +309,33 @@ data at 1440px and on a phone, with screenshots. Light theme was not touched.
 - Calculation results: the settlement graph is capped at 340px so the transfer list is visible next to it on desktop.
 - Left as is on purpose: toast position, the floating action bar and the full-page screenshots of fixed overlays (those
   looked odd only because a full-page capture re-lays out fixed elements).
+
+### Step 6: docs/mongodb-queries.md and docs/demo-script.md (done)
+
+- `docs/mongodb-queries.md`: 23 copy-paste `mongosh` blocks, each with a one-line "what it proves": collections and counts, a user
+  without the password (and only the start of the BCrypt hash), a user's splits via `members.userId` (with an `IXSCAN` check),
+  expenses newest first, one expense's exact shares, spend by category (`$group` + `$lookup`), paid per person, share per person
+  (`$unwind`), the latest calculation snapshot, Σ net = 0, calculation history, payments, the activity timeline, invite codes and
+  their unique index, soft delete, reports and the GridFS PDF (`fs.files` / `fs.chunks`), all indexes, and a from-scratch
+  recomputation of every balance. **All 23 blocks were executed against the seeded database** (a script extracts every block and
+  runs it through `mongosh`; 0 failures).
+- Running them was worth it: two queries ran without error but gave **wrong answers** because MongoDB returns amounts as `Long`
+  objects and `+` on those concatenates strings ("shares add up: false", garbage totals). Fixed with `Number(...)` and the outputs
+  now match the app (Aarav +€715.96, Sneha settled, Σ = 0).
+- `docs/demo-script.md`: a timed 7-minute viva script (new user and split, invite link in a second browser, the shared October
+  split: add an expense for some people, calculate, record a payment, recalculate, report and PDF) with what to say and which
+  query to show at each step, a cheat sheet of expected numbers and a troubleshooting list.
+- **The script was verified by clicking through it in a real browser**, Part A (register, create split, copy link, logged-out
+  preview, register and return to the join page, join) and Part B (add expense, calculate, record payment, recalculate, report,
+  PDF download), and the figures in it were taken from the API and the database rather than computed by hand. That caught a bug
+  and two wrong cells: a table in my first draft had a wrong "Paid" and "Share" cell (corrected from the real v2 snapshot).
+- **Bug found by that run and fixed:** in the add-expense drawer, pressing Enter after clicking a toggle activated the focused
+  button instead of saving. Plain Enter in a text field still saves; **Ctrl/Cmd+Enter now saves from anywhere** in the drawer.
+- The demo database was reset to the pristine seeded state afterwards (4 users, 2 splits, 43 expenses, 3 calculations, 4 payments,
+  2 reports, 2 PDFs in GridFS).
+
+## Status after this round
+
+All six steps requested are done and committed. Tests: 86 backend tests (`./mvnw -Pintegration test`) pass; the frontend builds and
+lints clean. Still not done (deliberately deferred): light-theme polish, the prod single-jar build, Swagger, `docs/architecture.md`,
+`docs/api.md`, the final README, the full §14 acceptance pass and all of §13.

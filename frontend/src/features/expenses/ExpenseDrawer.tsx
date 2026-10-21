@@ -138,7 +138,18 @@ export function ExpenseDrawer({
 
   return (
     <ResponsiveSheet open={open} onOpenChange={onOpenChange} title={title} desktop="drawer">
-      <form onSubmit={submit} className="space-y-6 pb-2" noValidate>
+      <form
+        onSubmit={submit}
+        onKeyDown={(e) => {
+          // Ctrl/Cmd+Enter saves from anywhere (plain Enter saves from a text field and still activates focused buttons).
+          if (e.key === "Enter" && (e.metaKey || e.ctrlKey) && !readOnly && !pending) {
+            e.preventDefault()
+            void submit()
+          }
+        }}
+        className="space-y-6 pb-2"
+        noValidate
+      >
         <fieldset disabled={readOnly} className="min-w-0 space-y-6">
           {/* Amount */}
           <div>
