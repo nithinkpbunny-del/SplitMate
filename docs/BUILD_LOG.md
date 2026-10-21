@@ -233,3 +233,17 @@ not being worked on).
 
 Start commands (verified): backend `cd backend && ./mvnw spring-boot:run -Dspring-boot.run.profiles=demo`,
 frontend `cd frontend && npm install && npm run dev`.
+
+### Step 2: Report aggregation checked against the seeded data (done)
+
+- `ReportAggregationsIntegrationTest` seeds the demo data into the `splitmate_test` database and runs the `$facet`
+  pipeline for the October split. The pipeline worked as written (no fixes needed to the pipeline itself); every
+  breakdown (by category, by member, daily trend, weekday pattern, top 5, member × category matrix) is compared
+  with an independent Java computation over the same expenses. Also checks the period filter, the zero-filled
+  daily trend, the first/last expense date helper and that the seeder is idempotent.
+- Numbers for October (hand-checkable): total €3,057.06 over 30 expenses; rent is 52.3% (€1,600.00); average per
+  expense €101.90, per day €98.61 (31 days), per person €764.27. All use integer half-up division.
+- `InsightGeneratorTest` (12 tests): each rule with its exact sentence, the edge cases (no expenses, one category,
+  no weekend in the period, same person paid and consumed most, up/down/same vs the previous split, no previous
+  split), the 4 to 7 insight cap and that the text really comes from the data.
+- A test of my own had wrong arithmetic (305,706 / 31 = 9,861.48, not 9,862); the code was right.
