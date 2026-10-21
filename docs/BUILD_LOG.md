@@ -525,3 +525,41 @@ Dev→Priya 291.38.
   which includes payments) and extended the PDF test to check for it.
 - My acceptance script had a selector bug (above) and, on review before the first run, two things that could have hidden failures (a `|| true` on a
   check and some leftover no-op lines); both were removed before running.
+
+---
+
+## Final run (done)
+
+On the final commit, with no servers running and a clean working tree:
+
+- `./mvnw clean test`: **59 tests, 0 failures**. `./mvnw -Pintegration test` (everything, against local MongoDB): **90 tests, 0 errors, 0 failures, 0 skipped**.
+- `npm run build`: passes (no warnings); `npm run lint`: **0 problems**.
+- Demo database reseeded with `scripts/reseed-demo.sh --seed-only --yes` and checked: `activity_logs=61 categories=12 expenses=43 fs.chunks=2 fs.files=2
+  payments=4 reports=2 settlements=3 splits=2 users=4`; the 4 users are all `@demo.com` (no test data left); **September month split** SETTLED
+  (13 expenses, 2 calculations, 3 payments, 1 report); **October month split** OPEN (30 expenses, total 305706 = €3,057.06, 1 calculation, 1 payment recorded
+  after it so the calculation is stale, 1 report); GridFS holds both PDFs; no soft-deleted expenses. The only other database is `splitmate_test`
+  (used and emptied by the integration tests).
+- (An earlier attempt at this step failed only because of a typo in my own shell command, which aborted the command chain, so nothing had been tested;
+  it was rerun correctly.)
+
+## Blockers and things not verified
+
+Nothing blocked the build. These are the limits of what was verified, so nothing is overstated:
+
+1. **`docker-compose.yml` (MongoDB 8 + mongo-express) was never started.** Docker is not running on the development machine (and was never installed
+   for this build), so the file is written to spec but untested, and the mongo-express viewer was not seen. The app was tested against a local Homebrew
+   MongoDB 9.0.4. Likewise no Testcontainers; the integration tests use the local MongoDB (`splitmate_test`).
+2. **Browsers:** everything was driven in Chrome (headless, macOS). Firefox, Safari and Edge were not tried; Safari does not accept `Secure` cookies on
+   `http://localhost`, so with the prod profile over plain HTTP set `COOKIE_SECURE=false` (documented in the README).
+3. **Devices:** phone layouts were verified at 360, 390 and 768px viewport widths in desktop Chrome, not on real phones; the Web Share API and the
+   bottom-sheet drag gestures were not exercised on a touch device.
+4. **Contrast** was machine-checked with axe-core (0 violations in 8 theme/width runs) but axe cannot judge text over gradients or inside SVG charts;
+   those were checked by eye only.
+5. **PDF fonts:** the PDF uses the built-in fonts (Helvetica), so emoji and non-Latin scripts in names are dropped from the PDF (the app itself shows them).
+   Embedding a font would fix it; a bundled-font download was started and abandoned.
+6. **Windows:** `scripts/reseed-demo.sh` is bash (use Git Bash/WSL, or the two manual commands in the README); `mvnw.cmd` was generated but not run.
+7. **Rate limiting** keys on the TCP peer address and lives in memory: behind a reverse proxy all clients appear as one address unless
+   `server.forward-headers-strategy` is set, and it does not span multiple instances.
+8. **First prod build needs internet** (frontend-maven-plugin downloads Node v26.12.0 from nodejs.org); later builds reuse `backend/target/node` unless cleaned.
+9. **Running `-Pprod` while `npm run dev` is active** leaves the dev server with a stale dependency cache (blank pages, `504 Outdated Optimize Dep`); restart `npm run dev`.
+10. §13 stretch goals (exact/percent splits, custom categories, receipt upload, multi-currency, notification stubs) were deliberately skipped, as instructed.
