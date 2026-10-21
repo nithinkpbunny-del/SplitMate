@@ -15,6 +15,11 @@ export default defineConfig(({ mode }) => {
         '@': path.resolve(import.meta.dirname, './src'),
       },
     },
+    build: {
+      // The charts are split out and loaded on demand; the rest (React, router, animation, UI primitives) is needed by
+      // every page, about 1 MB / 315 kB gzipped.
+      chunkSizeWarningLimit: 1100,
+    },
     server: {
       port: 5173,
       proxy: {

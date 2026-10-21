@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
 import { motion } from "framer-motion"
 import { AlertTriangle, Archive, Calculator, CircleCheckBig, FileBarChart2, History, Receipt, Scale } from "lucide-react"
-import { useRef, useState } from "react"
+import { lazy, Suspense, useRef, useState } from "react"
 import { useParams, useSearchParams } from "react-router"
 
 import { ApiError } from "@/api/client"
@@ -15,7 +15,6 @@ import { useMe } from "@/features/auth/useAuth"
 import { ExpenseDrawer } from "@/features/expenses/ExpenseDrawer"
 import { ExpensesTab } from "@/features/expenses/ExpensesTab"
 import { useExpenseMutations } from "@/features/expenses/useExpenseMutations"
-import { BalancesTab } from "@/features/settlement/BalancesTab"
 import { CalculationReveal } from "@/features/settlement/CalculationReveal"
 import { RecordPaymentDialog, type PaymentPreset } from "@/features/settlement/RecordPaymentDialog"
 import { useCalculate } from "@/features/settlement/useSettlement"
@@ -28,6 +27,9 @@ import { SplitActionBar } from "./SplitActionBar"
 import { SplitHeader } from "./SplitHeader"
 import { SplitTabs, type TabDef } from "./SplitTabs"
 import { useSplit } from "./useSplit"
+
+// The balances tab uses the charting library, so it is loaded on demand.
+const BalancesTab = lazy(() => import("@/features/settlement/BalancesTab").then((m) => ({ default: m.BalancesTab })))
 
 type TabId = "expenses" | "balances" | "reports" | "activity"
 
@@ -127,7 +129,11 @@ function SplitView({ split, me }: { split: Split; me: string }) {
             onDelete={(expense) => remove.mutate(expense)}
           />
         )}
-        {tab === "balances" && <BalancesTab split={split} me={me} onCalculate={runCalculation} onRecordPayment={recordPayment} />}
+        {tab === "balances" && (
+          <Suspense fallback={<Skeleton className="h-64 rounded-3xl" />}>
+            <BalancesTab split={split} me={me} onCalculate={runCalculation} onRecordPayment={recordPayment} />
+          </Suspense>
+        )}
         {tab === "reports" && <ReportsTab split={split} onCalculate={runCalculation} />}
         {tab === "activity" && <ActivityTab splitId={split.id} />}
       </motion.section>

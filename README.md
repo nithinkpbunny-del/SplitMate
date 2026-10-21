@@ -120,6 +120,27 @@ Without `JWT_SECRET` the dev and demo profiles generate a random signing secret 
 which logs everybody out whenever the backend restarts. Set `JWT_SECRET` in `.env` to keep logins across restarts.
 On Windows PowerShell, set a variable for one run with `$env:PORT = "8090"` before the command.
 
+## Production build: one jar, one port
+
+```bash
+cd backend
+./mvnw -Pprod clean package          # builds the React app into the jar (downloads Node on the first run, about 40 s)
+export JWT_SECRET=$(openssl rand -base64 48)
+java -jar target/splitmate-1.0.0.jar # the whole app on http://localhost:8090
+```
+
+The `prod` Maven profile installs Node, runs `npm ci` and the Vite build, and copies `frontend/dist` into the jar's static
+resources. Spring serves it, and any non-`/api` path that is not a real file answers with `index.html`, so client-side routes such as
+`/app/splits/...` or `/join/...` work on a hard refresh. A jar built with `-Pprod` starts with the **prod profile** by default:
+
+- **`JWT_SECRET` is required** (at least 32 bytes). Without it, startup stops with a short "APPLICATION FAILED TO START" message
+  that says what to do; production never generates a secret.
+- The login cookie is **`Secure`** (set `COOKIE_SECURE=false` only when serving plain HTTP on a real hostname; Chrome and Firefox
+  accept Secure cookies on `http://localhost`, Safari does not).
+- Swagger UI and `/api/docs` are off (they answer 404), and the demo seeder does not run.
+- Set `MONGODB_URI` and, when it is not `http://localhost:8090`, `APP_BASE_URL` (used to build invite links). The jar reads a `.env`
+  file in the directory you start it from, like the dev setup.
+
 ## API documentation (Swagger UI)
 
 With the `dev` or `demo` profile the backend serves interactive API docs:

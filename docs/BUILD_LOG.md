@@ -431,3 +431,26 @@ and the no-flash inline script were built in Phase 1. This step verified them on
   the theme and the choice survives a reload even against the system setting; the `dark` class is set before `<body>` exists (no flash);
   choosing "System" in the profile removes the stored choice and the app then follows the OS live when it changes; the account menu
   offers Midnight / Light / System.
+
+### Prod single-jar build (done)
+
+- `./mvnw -Pprod clean package` (about 40 s): frontend-maven-plugin installs Node v26.12.0 into `backend/target`, runs `npm ci` and
+  `npm run build`, and the resources plugin copies `frontend/dist` (19 files) to `target/classes/static` inside the jar (52 MB jar). npm's
+  stderr warnings appear as `[ERROR]` lines in Maven's log but the build exits 0.
+- Changes made for it: a `-Pprod` build now also packages `src/prod/resources/application.properties` with
+  `spring.profiles.default=prod`, so `java -jar` with no flags starts in prod mode (an explicit `--spring.profiles.active` still wins);
+  the prod `APP_BASE_URL` default is `http://localhost:8090` (it still said 8080); a **`FailureAnalyzer`** turns the missing / too-short
+  `JWT_SECRET` failure into a short "APPLICATION FAILED TO START: Description / Action" message instead of a screen of nested exceptions.
+- **Tested on the real jar** (port 8090, throwaway database `splitmate_prodtest`, started from a directory with no `.env`):
+  - no `JWT_SECRET` -> fails to start with the short message; `JWT_SECRET=tooshort` -> fails ("must be at least 32 bytes");
+  - startup log: "No active profile set, falling back to 1 default profile: prod"; only the categories seeder runs (no demo data);
+  - `/`, `/login`, `/app/splits/<id>`, `/join/<code>` -> `200 text/html` (index.html); `/assets/index-*.js` -> `200 text/javascript`;
+    `/favicon.svg` -> 200; `/api/health` -> 200; `/api/auth/me` and unknown `/api/...` -> `401` JSON; `/nothing.js` -> real `404` JSON;
+  - **Swagger off:** `/swagger-ui.html`, `/swagger-ui/index.html`, `/api/docs` -> `404`;
+  - **cookie:** `Set-Cookie: SM_TOKEN=...; Secure; HttpOnly; SameSite=Lax`, and Chrome stores it (`secure: true`) on `http://localhost`;
+  - **browser run on the jar:** landing, register, create split, invite link `http://localhost:8090/join/<code>`, hard refresh on
+    `/app/splits/<id>` and `...?tab=balances` renders, the logged-out invite page in a second browser, designed 404, 0 console errors;
+  - a report + PDF + CSV generated from inside the jar (Thymeleaf template, PDF fonts and GridFS all work from the nested jar).
+- Frontend bundle: the report page and the Balances tab (the only users of the charting library) are now lazy-loaded. Main bundle
+  **442 kB to 315 kB gzipped**; Vite's size warning limit is raised to 1100 kB with a comment (the rest is React, router, animation and
+  UI primitives that every page needs), so the build is warning-free.

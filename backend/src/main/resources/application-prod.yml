@@ -1,6 +1,6 @@
 # Production: JWT_SECRET is mandatory, cookies are Secure, Swagger is off.
 app:
-  base-url: ${APP_BASE_URL:http://localhost:8080}
+  base-url: ${APP_BASE_URL:http://localhost:8090}
   jwt:
     allow-generated-secret: false
   cookie:

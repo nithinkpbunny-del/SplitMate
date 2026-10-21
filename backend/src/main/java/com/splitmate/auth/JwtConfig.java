@@ -43,8 +43,7 @@ public class JwtConfig {
 		String secret = properties.jwt().secret();
 		if (secret == null || secret.isBlank()) {
 			if (!properties.jwt().allowGeneratedSecret()) {
-				throw new IllegalStateException(
-						"JWT_SECRET is not set. Set it to a random value of at least 32 bytes, e.g. `openssl rand -base64 48`.");
+				throw new JwtSecretException("JWT_SECRET is not set.");
 			}
 			byte[] random = new byte[48];
 			new SecureRandom().nextBytes(random);
@@ -59,7 +58,7 @@ public class JwtConfig {
 		}
 		byte[] bytes = secret.getBytes(StandardCharsets.UTF_8);
 		if (bytes.length < MIN_SECRET_BYTES) {
-			throw new IllegalStateException("JWT_SECRET must be at least " + MIN_SECRET_BYTES + " bytes long.");
+			throw new JwtSecretException("JWT_SECRET is too short: it must be at least " + MIN_SECRET_BYTES + " bytes long.");
 		}
 		return new SecretKeySpec(bytes, "HmacSHA256");
 	}
