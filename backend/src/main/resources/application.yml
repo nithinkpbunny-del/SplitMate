@@ -36,7 +36,7 @@ app:
     window-minutes: 5
 
 server:
-  port: ${PORT:8080}
+  port: ${PORT:8090}
   error:
     include-message: always
 

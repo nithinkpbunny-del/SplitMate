@@ -6,7 +6,7 @@ import { defineConfig, loadEnv } from 'vite'
 export default defineConfig(({ mode }) => {
   // Reads the repository-root .env so BACKEND_URL can point the dev proxy at another port.
   const env = loadEnv(mode, path.resolve(import.meta.dirname, '..'), '')
-  const backendUrl = env.BACKEND_URL || 'http://localhost:8080'
+  const backendUrl = env.BACKEND_URL || 'http://localhost:8090'
 
   return {
     plugins: [react(), tailwindcss()],
