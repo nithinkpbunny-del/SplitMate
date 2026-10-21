@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   Archive,
   ArchiveRestore,
+  Keyboard,
   Link2,
   Link2Off,
   LogOut,
@@ -40,7 +41,7 @@ import { ShareInvite } from "./ShareInvite"
 
 type Confirm = "regenerate" | "delete" | "leave" | null
 
-export function SplitHeader({ split }: { split: Split }) {
+export function SplitHeader({ split, onShortcuts }: { split: Split; onShortcuts: () => void }) {
   const { data: me } = useMe()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -150,6 +151,9 @@ export function SplitHeader({ split }: { split: Split }) {
                 </DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => setMembersOpen(true)}>
                   <Users /> Members
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={onShortcuts} className="hidden md:flex">
+                  <Keyboard /> Keyboard shortcuts <span className="ml-auto font-mono text-xs text-muted-foreground">?</span>
                 </DropdownMenuItem>
                 {isOwner ? (
                   <>

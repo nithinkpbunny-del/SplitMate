@@ -454,3 +454,22 @@ and the no-flash inline script were built in Phase 1. This step verified them on
 - Frontend bundle: the report page and the Balances tab (the only users of the charting library) are now lazy-loaded. Main bundle
   **442 kB to 315 kB gzipped**; Vite's size warning limit is raised to 1100 kB with a comment (the rest is React, router, animation and
   UI primitives that every page needs), so the build is warning-free.
+
+### Skipped spec items: rate limiting, shortcuts, QR code (done)
+
+All three existed from earlier phases (built before they were deferred); this step verified them end to end and filled the gap.
+
+- **Login rate limiting** (10 failed attempts per IP + email in 5 minutes, then `429` with `Retry-After`): it had a fake-clock unit test; added
+  `LoginRateLimitIntegrationTest` (4 HTTP-level tests): ten failures then 429 even with the right password, other emails unaffected,
+  a success resets the counter, unknown emails are limited too. In the real login form the 11th attempt shows "Too many login attempts. Try
+  again in 5 minutes." Limitation noted: the key uses the TCP peer address, so behind a reverse proxy every user shares one address unless
+  `server.forward-headers-strategy` is configured; the limiter is in memory (single instance).
+- **Keyboard shortcuts:** `N`, `C` and `/` existed; **added `?`**, which opens a shortcuts help dialog (also reachable from the split menu on
+  desktop), and **Ctrl/⌘+Enter** to save the expense form. Browser-tested: `?` opens and Esc closes the help, `N` opens the drawer, `/` focuses
+  the search field (and switches to the Expenses tab from another tab), `C` opens the calculation results; the keys are ignored while typing
+  in a field (typing "c" in the expense form or "nc" in the search box triggers nothing) and while a dialog is open.
+- **QR code:** on the invite share screen. Browser-tested by screenshotting the QR and **decoding it with jsQR: it contains exactly the invite
+  link** shown in the field next to it; the Copy button and the WhatsApp link (`https://wa.me/?text=...`) are present.
+- Found while testing: running `-Pprod` (which runs `npm ci`) while `npm run dev` is up leaves the Vite dev server with a stale dependency cache
+  (`504 Outdated Optimize Dep`, blank pages). Restarting the dev server fixes it; worth remembering when switching between the two.
+- Suite: 90 backend tests pass; frontend build and lint clean.

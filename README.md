@@ -96,6 +96,18 @@ while a backend answers there. It also asks before deleting, and refuses a non-l
 By hand, the same thing is `mongosh splitmate --eval 'db.dropDatabase()'` (backend stopped) followed by starting the backend
 with the demo profile. On Windows, use that route (or run the script from Git Bash or WSL).
 
+### Keyboard shortcuts (on a split page)
+
+| Key | Action |
+|---|---|
+| `N` | Add an expense |
+| `C` | Calculate the split |
+| `/` | Search expenses |
+| `?` | Show the shortcuts help |
+| `Enter` / `Ctrl or ⌘ + Enter` | Save the expense form (Enter while typing in a field; the other from anywhere) |
+
+Single keys are ignored while you type in a field or while a dialog is open.
+
 ## Ports and configuration
 
 | What | Default |

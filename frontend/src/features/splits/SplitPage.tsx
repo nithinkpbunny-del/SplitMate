@@ -25,6 +25,7 @@ import { useHotkeys } from "@/hooks/useHotkeys"
 
 import { SplitActionBar } from "./SplitActionBar"
 import { SplitHeader } from "./SplitHeader"
+import { ShortcutsDialog } from "./ShortcutsDialog"
 import { SplitTabs, type TabDef } from "./SplitTabs"
 import { useSplit } from "./useSplit"
 
@@ -76,6 +77,7 @@ function SplitView({ split, me }: { split: Split; me: string }) {
   const calculate = useCalculate(split.id)
   const generateReport = useGenerateReport(split.id)
   const [revealOpen, setRevealOpen] = useState(false)
+  const [helpOpen, setHelpOpen] = useState(false)
   const [payment, setPayment] = useState<{ open: boolean; preset: PaymentPreset | null }>({ open: false, preset: null })
 
   const runCalculation = () => {
@@ -97,6 +99,7 @@ function SplitView({ split, me }: { split: Split; me: string }) {
   useHotkeys({
     n: () => isOpen && addExpense(),
     c: () => runCalculation(),
+    "?": () => setHelpOpen(true),
     "/": () => {
       if (tab !== "expenses") setTab("expenses")
       window.setTimeout(() => searchRef.current?.focus(), 50)
@@ -105,7 +108,7 @@ function SplitView({ split, me }: { split: Split; me: string }) {
 
   return (
     <div className="space-y-6">
-      <SplitHeader split={split} />
+      <SplitHeader split={split} onShortcuts={() => setHelpOpen(true)} />
       <StatusBanner split={split} />
       <StaleBanner split={split} onRecalculate={runCalculation} pending={calculate.isPending} />
       <SplitTabs tabs={tabs} value={tab} onChange={setTab} />
@@ -137,6 +140,8 @@ function SplitView({ split, me }: { split: Split; me: string }) {
         {tab === "reports" && <ReportsTab split={split} onCalculate={runCalculation} />}
         {tab === "activity" && <ActivityTab splitId={split.id} />}
       </motion.section>
+
+      <ShortcutsDialog open={helpOpen} onOpenChange={setHelpOpen} />
 
       {isOpen && <SplitActionBar onAdd={addExpense} onCalculate={runCalculation} />}
 
