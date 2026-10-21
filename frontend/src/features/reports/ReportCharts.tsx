@@ -169,7 +169,7 @@ export function CategoryDonut({ stats, currency }: { stats: ReportStats; currenc
         rows: stats.byCategory.map((c) => [c.name, c.count, formatMoney(c.totalMinor, currency), `${c.percent.toFixed(1)}%`]),
       }}
     >
-      <div className="grid items-center gap-6 sm:grid-cols-[220px_1fr]">
+      <div className="grid grid-cols-1 items-center gap-6 sm:grid-cols-[220px_minmax(0,1fr)]">
         <div className="relative mx-auto size-[220px]" role="img" aria-label={`Donut chart: ${data.map((d) => `${d.name} ${d.percent}%`).join(", ")}`}>
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
@@ -220,7 +220,6 @@ export function CategoryDonut({ stats, currency }: { stats: ReportStats; currenc
 export function DailyTrend({ stats, currency }: { stats: ReportStats; currency: string }) {
   const data = stats.dailyTrend
   const peak = data.reduce((best, d) => (d.totalMinor > best.totalMinor ? d : best), data[0])
-  const tickEvery = Math.max(1, Math.round(data.length / 7))
   return (
     <ChartCard
       title="Spending day by day"
@@ -234,7 +233,7 @@ export function DailyTrend({ stats, currency }: { stats: ReportStats; currency: 
         <ResponsiveContainer width="100%" height={240}>
           <AreaChart data={data} margin={{ top: 22, right: 18, bottom: 0, left: 0 }}>
             <CartesianGrid vertical={false} stroke={GRID} />
-            <XAxis dataKey="date" tick={TICK} tickLine={false} axisLine={{ stroke: GRID }} interval={tickEvery - 1} tickFormatter={(v: string) => parseLocalDate(v).toLocaleDateString("en-GB", { day: "numeric", month: "short" })} />
+            <XAxis dataKey="date" tick={TICK} tickLine={false} axisLine={{ stroke: GRID }} interval="preserveStartEnd" minTickGap={28} tickFormatter={(v: string) => parseLocalDate(v).toLocaleDateString("en-GB", { day: "numeric", month: "short" })} />
             <YAxis tick={TICK} tickLine={false} axisLine={false} width={52} tickFormatter={(v: number) => formatCompact(v, currency)} />
             <Tooltip
               cursor={{ stroke: "var(--muted-foreground)", strokeOpacity: 0.5, strokeDasharray: "0" }}

@@ -292,3 +292,20 @@ frontend `cd frontend && npm install && npm run dev`.
   (A full-page screenshot caught the line chart mid-animation once; an element screenshot shows it correctly.)
 - Note: my testing added extra reports and a recalculation to the demo database; reset it with `db.dropDatabase()` and a
   backend restart to get the pristine seeded state.
+
+### Step 5: UI polish on the demo screens, dark theme only (done)
+
+Reviewed dashboard, split detail (expenses and balances), add expense, calculation results and the report on the seeded
+data at 1440px and on a phone, with screenshots. Light theme was not touched.
+
+- **Horizontal overflow on phones fixed.** Grids without a column template size themselves to the min-content of their
+  widest child, so one chart or card pushed the page 6 to 31px past the viewport (dashboard, balances, report). Single-column
+  grids now use `grid-cols-1` and grid items `min-w-0`. A script now measures `scrollWidth - innerWidth` on every screen:
+  **0 at both 390px and 360px** on dashboard, split, balances, report tab, report and profile.
+- Avatar stacks overlap less, so initials are no longer clipped.
+- Dashboard recent activity shows 8 items instead of 12, so the page is not twice as tall as the split cards.
+- Expense names wrap to two lines on phones instead of being cut off at "Dinner at Lokál Pra…".
+- Daily trend chart: x-axis labels no longer collide on narrow screens (`preserveStartEnd`, minimum tick gap).
+- Calculation results: the settlement graph is capped at 340px so the transfer list is visible next to it on desktop.
+- Left as is on purpose: toast position, the floating action bar and the full-page screenshots of fixed overlays (those
+  looked odd only because a full-page capture re-lays out fixed elements).

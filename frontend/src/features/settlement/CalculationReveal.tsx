@@ -180,7 +180,7 @@ function Results({
           transfers={settlement.transfers}
           currency={settlement.currency}
           highlightUserId={me}
-          className="mx-auto"
+          className="mx-auto max-w-[340px]"
         />
         <div>
           <h2 className="font-heading text-2xl font-bold">

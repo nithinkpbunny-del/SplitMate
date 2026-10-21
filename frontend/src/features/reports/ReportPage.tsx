@@ -106,7 +106,7 @@ function ReportView({ report, splitName, splitEmoji }: { report: Report; splitNa
           <h2 id="insights-heading" className="mb-3 font-heading text-xl font-bold">
             What stands out
           </h2>
-          <div className="grid gap-3 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             {report.insights.map((text, i) => (
               <motion.div key={text} variants={item} className="flex gap-3 rounded-2xl border border-hairline bg-surface p-4" style={{ borderLeftColor: "var(--lime-ink)", borderLeftWidth: 3 }}>
                 <Lightbulb className="mt-0.5 size-4 shrink-0 text-lime-ink" aria-hidden />
@@ -121,14 +121,14 @@ function ReportView({ report, splitName, splitEmoji }: { report: Report; splitNa
       )}
 
       {/* Charts */}
-      <motion.div variants={item} className="grid gap-6 lg:grid-cols-2">
+      <motion.div variants={item} className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <CategoryDonut stats={stats} currency={currency} />
         <MemberBars members={stats.byMember} currency={currency} />
       </motion.div>
       <motion.div variants={item}>
         <DailyTrend stats={stats} currency={currency} />
       </motion.div>
-      <motion.div variants={item} className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      <motion.div variants={item} className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <WeekdayBars stats={stats} currency={currency} />
         <TopExpenses report={report} />
       </motion.div>

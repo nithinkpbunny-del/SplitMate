@@ -40,7 +40,7 @@ export function DashboardPage() {
   const { data: me } = useMe()
   const [creating, setCreating] = useState(false)
   const splits = useQuery({ queryKey: splitKeys.all, queryFn: splitsApi.list })
-  const activity = useQuery({ queryKey: splitKeys.recentActivity, queryFn: () => activityApi.recent(12) })
+  const activity = useQuery({ queryKey: splitKeys.recentActivity, queryFn: () => activityApi.recent(8) })
 
   const list = splits.data ?? []
   const ordered = [...list].sort((a, b) => (a.status === "ARCHIVED" ? 1 : 0) - (b.status === "ARCHIVED" ? 1 : 0))
@@ -97,13 +97,13 @@ export function DashboardPage() {
         )}
       </section>
 
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <section aria-labelledby="splits-heading">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <section aria-labelledby="splits-heading" className="min-w-0">
           <h2 id="splits-heading" className="mb-4 font-heading text-xl font-bold">
             Your splits
           </h2>
           {splits.isPending ? (
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {Array.from({ length: 4 }, (_, i) => (
                 <Skeleton key={i} className="h-[232px] rounded-3xl" />
               ))}
@@ -122,7 +122,7 @@ export function DashboardPage() {
               }
             />
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {ordered.map((split, i) => (
                 <SplitCard key={split.id} split={split} index={i} />
               ))}
@@ -147,7 +147,7 @@ export function DashboardPage() {
           )}
         </section>
 
-        <aside aria-labelledby="activity-heading">
+        <aside aria-labelledby="activity-heading" className="min-w-0">
           <h2 id="activity-heading" className="mb-4 font-heading text-xl font-bold">
             Recent activity
           </h2>

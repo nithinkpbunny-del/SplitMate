@@ -275,7 +275,7 @@ function ExpenseRow({
           <CategoryIcon category={category} />
         </motion.span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate font-medium">{expense.description}</span>
+          <span className="line-clamp-2 font-medium leading-snug sm:truncate">{expense.description}</span>
           <span className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
             {payer && <MemberAvatar person={payer} size="xs" />}
             <span className="truncate">{expense.paidBy === me ? "You" : firstName(payer?.name ?? "Someone")} paid</span>

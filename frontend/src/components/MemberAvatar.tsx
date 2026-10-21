@@ -60,7 +60,7 @@ export function AvatarStack({
   const shown = people.slice(0, max)
   const extra = people.length - shown.length
   return (
-    <div className={cn("flex items-center -space-x-2", className)} aria-label={people.map((p) => p.name).join(", ")}>
+    <div className={cn("flex items-center -space-x-1.5", className)} aria-label={people.map((p) => p.name).join(", ")}>
       {shown.map((p, i) => (
         <MemberAvatar key={`${p.name}-${i}`} person={p} size={size} ring />
       ))}

@@ -62,7 +62,7 @@ export function ReportsTab({ split, onCalculate }: { split: Split; onCalculate: 
           description="Generate one to see charts, insights and a downloadable PDF for this split."
         />
       ) : (
-        <ul className="grid gap-3 md:grid-cols-2">
+        <ul className="grid grid-cols-1 gap-3 md:grid-cols-2">
           {list.map((r, i) => (
             <motion.li key={r.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
               <Link
