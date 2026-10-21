@@ -74,17 +74,18 @@
 
 <h2>Per person</h2>
 <table>
-  <thead><tr><th>Person</th><th class="r">Paid</th><th class="r">Their share</th><th class="r">Net</th></tr></thead>
+  <thead><tr><th>Person</th><th class="r">Paid</th><th class="r">Their share</th><th class="r">Net</th><th class="r">Balance now</th></tr></thead>
   <tbody>
     <tr th:each="m : ${members}">
       <td th:text="${m.name}">Aarav</td>
       <td class="r" th:text="${m.paid}">0</td>
       <td class="r" th:text="${m.share}">0</td>
       <td class="r" th:classappend="${m.net.startsWith('-')} ? 'neg' : (${m.net.startsWith('+')} ? 'pos' : 'muted')" th:text="${m.net}">0</td>
+      <td class="r" th:classappend="${m.balance.startsWith('-') &amp;&amp; m.balance.length() &gt; 1} ? 'neg' : (${m.balance.startsWith('+')} ? 'pos' : 'muted')" th:text="${m.balance}">0</td>
     </tr>
   </tbody>
 </table>
-<p class="note">Paid is what the person put out. Their share is what they used. Net = paid - share, before any payments between members.</p>
+<p class="note">Paid is what the person put out. Their share is what they used. Net = paid - share. Balance now also counts the payments recorded between members, as of the latest calculation (positive: gets money back, negative: owes).</p>
 
 <h2>Who pays whom</h2>
 <table th:if="${!transfers.isEmpty()}">

@@ -102,7 +102,7 @@ class ReportFlowIntegrationTest extends MongoIntegrationTest {
 		assertThat(new String(pdf, 0, 4, StandardCharsets.US_ASCII)).isEqualTo("%PDF");
 		try (PDDocument document = Loader.loadPDF(pdf)) {
 			String text = new PDFTextStripper().getText(document);
-			assertThat(text).contains("Oktober Käse split").contains("€130.00").contains("Aarav Mehta").contains("+€60.00")
+			assertThat(text).contains("Oktober Käse split").contains("Balance now").contains("€130.00").contains("Aarav Mehta").contains("+€60.00")
 				.contains("Rohan Nair pays Aarav Mehta").contains("€50.00").contains("=Dinner");
 			assertThat(text).doesNotContain("🏠");
 		}

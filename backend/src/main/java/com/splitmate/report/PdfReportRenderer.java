@@ -55,7 +55,7 @@ public class PdfReportRenderer {
 	record CategoryRow(String name, String color, long count, String total, String barWidth, String percentLabel) {
 	}
 
-	record MemberRow(String name, String paid, String share, String net) {
+	record MemberRow(String name, String paid, String share, String net, String balance) {
 	}
 
 	record TransferRow(String text, String amount) {
@@ -104,10 +104,17 @@ public class PdfReportRenderer {
 					Math.max(1, Math.round(c.percent())) + "%", String.format(Locale.UK, "%.1f%%", c.percent())))
 			.toList();
 
+		// "Balance now" comes from the latest calculation and, unlike Net, includes recorded payments.
+		Map<String, Long> balanceNow = in.settlement() == null ? Map.of()
+				: in.settlement()
+					.getMemberSummaries()
+					.stream()
+					.collect(Collectors.toMap(m -> m.userId().toHexString(), Settlement.MemberSummary::netMinor, (a, b) -> a));
 		List<MemberRow> memberRows = stats.byMember()
 			.stream()
 			.map(m -> new MemberRow(safe(m.name()), money(m.paidMinor(), currency), money(m.shareMinor(), currency),
-					signed(m.netMinor(), currency)))
+					signed(m.netMinor(), currency),
+					balanceNow.containsKey(m.userId()) ? signed(balanceNow.get(m.userId()), currency) : "-"))
 			.toList();
 
 		List<TransferRow> transfers = in.settlement() == null ? List.of()
