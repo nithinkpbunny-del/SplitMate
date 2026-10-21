@@ -20,8 +20,6 @@ spring:
       max-file-size: 5MB
   thymeleaf:
     check-template-location: false
-  jackson:
-    default-property-inclusion: non_null
 
 app:
   base-url: ${APP_BASE_URL:http://localhost:5173}

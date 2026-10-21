@@ -124,3 +124,39 @@ soft delete, filters, the spec's worked example as live balances, closed split r
 - "Today" for the future-date rule is evaluated in Europe/Berlin, where the target users live.
 - Text search uses an escaped case-insensitive regex instead of a `$text` index so partial words match
   ("groc" finds "Groceries").
+
+## Phase 4: Calculation engine and settlement
+
+**Delivered**
+- Pure engine in `settlement/engine` (no Spring or MongoDB types): `EqualSplit`, `SettlementCalculator`,
+  records `LedgerExpense`, `LedgerPayment`, `MemberBalance`, `Transfer`, `SettlementResult`.
+  Σ net = 0 and "shares sum to the amount" are asserted and throw if violated. Greedy settlement with
+  priority queues (largest debtor ↔ largest creditor), ties by user id, at most n − 1 transfers.
+- All eight required tests from §6.5 pass (`SettlementCalculatorTest`), including the 1,000-group randomised
+  property test (Σ net = 0, transfers settle every balance to exactly 0, ≤ n − 1 transfers, deterministic),
+  plus tie-breaking, invalid shares and edge cases.
+- `settlements` snapshots (`{splitId, version:-1}` unique). The version comes from `findAndModify` + `$inc` on
+  the split. `calculatedAt` is captured before the data is read, so any change after it marks the
+  snapshot stale. Endpoints: `POST /calculate`, `GET /settlements/latest` (204 if none),
+  `GET /settlements`, `GET /settlements/{id}`, `POST /settle`.
+- `payments`: `POST/GET /payments`, `DELETE /payments/{id}` (recorder or owner). Payer, payee or owner may
+  record. Paying more than the latest calculation says is owed is allowed but returns a clear `warning`.
+- Stale detection: `calculationStale` is true when expenses or payments changed after `lastCalculatedAt`.
+- Mark as settled requires an up-to-date calculation and every live balance to be exactly zero.
+- Frontend: stale banner with Recalculate, Balances tab (personal "You owe Isha €23.40" line, diverging
+  balance bars, graph/list toggle for who-pays-whom with "Record payment" per transfer, per-member cards
+  with Paid / Their share / Net, payments list with delete, calculation history), the ~1.2s "crunching
+  numbers" reveal with staggered results, record-payment dialog with quick notes, "Mark split as settled"
+  with confetti. `C` calculates.
+
+**Spot check (written by hand, matches the app):** the spec's worked example (A pays €90 for A, B, C; B pays
+€40 for B, C) gives A paid 90.00 / share 30.00 / net +60.00, B paid 40.00 / share 50.00 / net −10.00,
+C paid 0 / share 50.00 / net −50.00; transfers C→A €50.00, B→A €10.00. Verified via the API in
+`SettlementFlowIntegrationTest` and in the UI.
+
+**Decisions**
+- Removed `spring.jackson.default-property-inclusion: non_null`: explicit `null`s keep the frontend types
+  honest (`lastCalculatedAt === null`, `warning: null`).
+- The balance chart follows the dataviz guidance: bars ≤ 24px with a rounded data end and a square
+  baseline, neutral zero line, value labels in text colours with +/− (never colour alone), hover tooltip,
+  and the member cards act as the table view.

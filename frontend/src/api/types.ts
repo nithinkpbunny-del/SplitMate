@@ -148,3 +148,61 @@ export type ExpensePage = {
   totalPages: number
   totalAmountMinor: number
 }
+
+export type MemberSummary = {
+  userId: string
+  name: string
+  avatarColor: string
+  paidMinor: number
+  shareMinor: number
+  paymentsSentMinor: number
+  paymentsReceivedMinor: number
+  netMinor: number
+}
+
+export type TransferItem = {
+  fromUserId: string
+  fromName: string
+  toUserId: string
+  toName: string
+  amountMinor: number
+}
+
+export type Settlement = {
+  id: string
+  splitId: string
+  version: number
+  calculatedBy: string
+  calculatedByName: string
+  calculatedAt: string
+  currency: string
+  totalSpendMinor: number
+  expenseCount: number
+  expenseIds: string[]
+  memberSummaries: MemberSummary[]
+  transfers: TransferItem[]
+  allSettled: boolean
+}
+
+export type SettlementHistoryItem = {
+  id: string
+  version: number
+  calculatedAt: string
+  calculatedByName: string
+  totalSpendMinor: number
+  expenseCount: number
+  transferCount: number
+}
+
+export type Payment = {
+  id: string
+  splitId: string
+  fromUserId: string
+  toUserId: string
+  amountMinor: number
+  note: string | null
+  settlementId: string | null
+  recordedBy: string
+  createdAt: string
+  warning: string | null
+}
