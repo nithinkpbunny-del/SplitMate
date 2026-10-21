@@ -1,0 +1,4 @@
+# Demo profile = dev settings (profile group, see application.yml) + the demo data seeder.
+app:
+  seed:
+    enabled: true

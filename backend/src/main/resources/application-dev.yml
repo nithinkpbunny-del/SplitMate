@@ -1,0 +1,16 @@
+# Local development: a random JWT secret is generated (with a warning) when JWT_SECRET is not set.
+app:
+  jwt:
+    allow-generated-secret: true
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: /api/docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+
+logging:
+  level:
+    com.splitmate: DEBUG

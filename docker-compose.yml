@@ -1,0 +1,36 @@
+# Optional: MongoDB + mongo-express for people without a local MongoDB install.
+#   docker compose up -d
+# MongoDB  -> mongodb://localhost:27017/splitmate
+# Viewer   -> http://localhost:8081  (login: admin / splitmate)
+# Both ports are bound to 127.0.0.1 only, so nothing is exposed to your network.
+services:
+  mongo:
+    image: mongo:8
+    container_name: splitmate-mongo
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 }).ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongo-express:
+    image: mongo-express:latest
+    container_name: splitmate-mongo-express
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://mongo:27017/
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: splitmate
+
+volumes:
+  mongo-data:

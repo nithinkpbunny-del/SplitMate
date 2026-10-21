@@ -1,0 +1,59 @@
+spring:
+  application:
+    name: splitmate
+  profiles:
+    group:
+      demo: dev
+  config:
+    # Optional .env files (KEY=VALUE) in the backend folder or the repository root.
+    import:
+      - optional:file:.env[.properties]
+      - optional:file:../.env[.properties]
+  mongodb:
+    # Spring Boot 4 moved the connection settings from spring.data.mongodb.* to spring.mongodb.*
+    uri: ${MONGODB_URI:mongodb://localhost:27017/splitmate}
+  data:
+    mongodb:
+      auto-index-creation: true
+  servlet:
+    multipart:
+      max-file-size: 5MB
+  thymeleaf:
+    check-template-location: false
+  jackson:
+    default-property-inclusion: non_null
+
+app:
+  base-url: ${APP_BASE_URL:http://localhost:5173}
+  jwt:
+    secret: ${JWT_SECRET:}
+    expiry-days: 7
+    allow-generated-secret: false
+  cookie:
+    secure: ${COOKIE_SECURE:false}
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
+  login-rate-limit:
+    max-attempts: 10
+    window-minutes: 5
+
+server:
+  port: ${PORT:8080}
+  error:
+    include-message: always
+
+management:
+  endpoints:
+    web:
+      base-path: /api
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

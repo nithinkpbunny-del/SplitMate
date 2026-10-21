@@ -1,0 +1,23 @@
+# Environment
+.env
+*.local
+
+# OS / editors
+.DS_Store
+.idea/
+*.iml
+.vscode/*
+!.vscode/extensions.json
+
+# Backend
+backend/target/
+backend/.env
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/*.tsbuildinfo
+node_modules/
+
+# Logs
+*.log

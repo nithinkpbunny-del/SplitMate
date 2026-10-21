@@ -1,0 +1,15 @@
+# Production: JWT_SECRET is mandatory, cookies are Secure, Swagger is off.
+app:
+  base-url: ${APP_BASE_URL:http://localhost:8080}
+  jwt:
+    allow-generated-secret: false
+  cookie:
+    secure: ${COOKIE_SECURE:true}
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:}
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
