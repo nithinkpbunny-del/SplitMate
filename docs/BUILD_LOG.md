@@ -368,3 +368,13 @@ extended by later steps (reseed script, Swagger, the prod build) as those featur
   junk collection and produced exactly the pristine counts (61 activity entries, 12 categories, 43 expenses, 2 GridFS files, 4 payments,
   2 reports, 3 settlements, 2 splits, 4 users) with the indexes recreated; the default mode started the backend and seeded.
 - (My first test run was invalid: a leftover `spring-boot:run` from earlier was still alive, so the script correctly refused.)
+
+### docs/architecture.md (done)
+
+Five Mermaid diagrams written from the code: system architecture (browser, security filter chain, controllers, services, the pure-Java
+engine, data access, MongoDB + GridFS), the collection relationships (ER diagram with the key fields, embedded members and the
+indexes), the invite flow (sequence diagram including the logged-out preview, register-and-return, the guarded join and what
+disabling or regenerating does), the calculate flow (sequence diagram with the balance formula, the greedy settlement, the atomic
+version counter and stale detection) and, as a bonus, the report flow. A table of design decisions follows.
+**Every diagram was parsed and rendered with the real Mermaid library (v11) in headless Chrome: 5 of 5 valid**, and the two big ones
+were checked by eye for legibility.
